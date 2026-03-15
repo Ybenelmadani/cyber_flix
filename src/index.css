@@ -1,13 +1,174 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  --cyber-bg: #020617;
+  --cyber-panel: rgba(15, 23, 42, 0.74);
+  --cyber-border: rgba(34, 211, 238, 0.16);
+  --cyber-text: #e0f2fe;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-cyber-dark text-cyan-50;
+    background:
+      radial-gradient(circle at top, rgba(34, 211, 238, 0.1), transparent 28%),
+      radial-gradient(circle at 85% 10%, rgba(232, 121, 249, 0.08), transparent 24%),
+      linear-gradient(180deg, #0f172a 0%, #020617 100%);
+    font-family: 'Space Grotesk', 'Cairo', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  /* Scrollbar cyberpunk */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cyber-darker;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-cyber-cyan to-cyber-fuchsia rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply from-cyber-cyan-glow to-cyber-fuchsia-glow;
+  }
+}
+
+@layer components {
+
+  /* Bouton principal */
+  .btn-cyber {
+    @apply relative overflow-hidden bg-gradient-to-r from-cyber-cyan to-cyber-violet
+           text-white font-bold py-3 px-6 rounded-xl transition-all duration-300
+           hover:shadow-lg hover:shadow-cyber-cyan/30 hover:scale-105
+           active:scale-95;
+  }
+
+  /* Carte néon */
+  .card-neon {
+    @apply bg-cyber-darker/50 border border-cyber-cyan/20 rounded-2xl
+           backdrop-blur-sm transition-all duration-300
+           hover:border-cyber-fuchsia/50 hover:shadow-lg hover:shadow-cyber-fuchsia/10;
+  }
+
+  /* Texte dégradé */
+  .text-gradient {
+    @apply bg-gradient-to-r from-cyber-cyan via-cyber-violet to-cyber-fuchsia
+           bg-clip-text text-transparent;
+  }
+
+  /* Bordure glow */
+  .border-glow {
+    @apply border border-cyber-cyan/30 shadow-[0_0_10px_rgba(34,211,238,0.1)];
+  }
+
+  /* Input */
+  .input-cyber {
+    @apply bg-cyber-darker/50 border border-cyber-cyan/30 rounded-xl
+           px-4 py-3 text-cyber-cyan placeholder-cyber-cyan/50
+           focus:outline-none focus:border-cyber-fuchsia focus:ring-2
+           focus:ring-cyber-fuchsia/20 transition-all;
+  }
+
+  /* Badge */
+  .badge-quality {
+    @apply bg-cyber-cyan/90 text-cyber-dark text-xs font-bold
+           px-2 py-1 rounded-lg backdrop-blur;
+  }
+
+  /* Navigation */
+  .nav-item {
+    @apply px-4 py-2 text-cyber-cyan/80 hover:text-cyber-fuchsia
+           hover:bg-cyber-cyan/10 rounded-lg transition-all duration-300
+           font-medium flex items-center gap-1;
+  }
+
+  /* Dropdown */
+  .dropdown-cyber {
+    @apply absolute top-full right-0 mt-2 w-56
+           bg-cyber-darker/95 backdrop-blur-xl
+           border border-cyber-cyan/30 rounded-xl
+           shadow-2xl shadow-cyber-cyan/20 overflow-hidden
+           animate-in fade-in slide-in-from-top-2 duration-200;
+  }
+
+  .dropdown-item {
+    @apply block px-4 py-3 text-sm text-cyber-cyan/90
+           hover:bg-gradient-to-r hover:from-cyber-cyan/20 hover:to-cyber-fuchsia/20
+           hover:text-cyber-fuchsia transition-all
+           border-b border-cyber-cyan/10 last:border-0;
+  }
+
+  /* Serveur actif */
+  .server-active {
+    @apply text-cyber-fuchsia bg-cyber-fuchsia/10
+           relative after:absolute after:bottom-0 after:left-0
+           after:right-0 after:h-0.5 after:bg-cyber-gradient;
+  }
+
+  /* Genre tag (CORRIGÉ) */
+  .genre-tag {
+    @apply flex items-center justify-between px-4 py-3
+           bg-cyber-darker/50 border border-cyber-cyan/20
+           rounded-xl text-cyber-cyan/80 hover:border-cyber-fuchsia/50
+           hover:text-cyber-fuchsia hover:bg-cyber-fuchsia/10
+           transition-all;
+  }
+}
+
+@layer utilities {
+
+  /* Masquer scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Glass */
+  .glass {
+    @apply border border-white/10 bg-cyber-darker/60 backdrop-blur-md;
+  }
+
+  /* Shimmer */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(34,211,238,0.1),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }
