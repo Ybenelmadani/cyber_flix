@@ -14,6 +14,7 @@ export default function Header({
   user = null,
   labels = {},
   onOpenAuth = () => {},
+  onOpenAdmin = () => {},
   onLogout = () => {},
   onUpgrade = () => {},
 }) {
@@ -105,6 +106,15 @@ export default function Header({
 
             {user ? (
               <>
+                {user.role === "admin" ? (
+                  <button
+                    type="button"
+                    onClick={onOpenAdmin}
+                    className="rounded-xl border border-cyber-cyan/25 bg-cyber-darker/70 px-4 py-2 text-sm font-semibold text-cyber-cyan transition hover:border-cyber-fuchsia hover:text-cyber-fuchsia"
+                  >
+                    {labels.admin || "Admin"}
+                  </button>
+                ) : null}
                 {user.plan !== "premium" ? (
                   <button
                     type="button"

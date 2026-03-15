@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import Hero from "./components/Hero";
 import MovieGrid from "./components/MovieGrid";
 import MovieDetail from "./components/MovieDetail";
+import AdminStreamsPanel from "./components/AdminStreamsPanel";
 import Genres from "./components/Genres";
 import Footer from "./components/Footer";
 import AdBanner from "./components/AdBanner";
@@ -25,6 +26,7 @@ const API_LANGUAGE_MAP = {
   fr: "fr-FR",
   ar: "ar-SA",
 };
+const ADMIN_STREAMS_PATH = "/admin/streams";
 
 const parseDetailPath = (path) => {
   const match = path.match(/^\/(movie|tv)\/(\d+)$/i);
@@ -38,6 +40,7 @@ const parseDetailPath = (path) => {
 };
 
 const detailPath = (media, id) => `/${media}/${id}`;
+const isAdminPath = (path) => path === ADMIN_STREAMS_PATH;
 
 const setMeta = (name, content) => {
   let tag = document.querySelector(`meta[name="${name}"]`);
@@ -394,6 +397,7 @@ export default function App() {
     mediaType === "movie" ? t.categories.movie : t.categories.tv;
   const isRTL = language === "ar";
   const hasPremium = authUser?.plan === "premium";
+  const isAdminRoute = isAdminPath(routePath);
 
   const nextLanguageLabel = useMemo(() => {
     const index = LANG_ORDER.indexOf(language);
@@ -728,14 +732,32 @@ export default function App() {
     setActiveServer(null);
   }, []);
 
+  const openAdminPanel = useCallback((pushState = true) => {
+    if (pushState) {
+      window.history.pushState({}, "", ADMIN_STREAMS_PATH);
+    }
+    setRoutePath(ADMIN_STREAMS_PATH);
+    setSelectedItem(null);
+    setSelectedDetails(null);
+    setSelectedSeason(null);
+    setSeasonDetails(null);
+    setWatchProviders(null);
+    setServers([]);
+    setActiveServer(null);
+    setError("");
+  }, []);
+
   useEffect(() => {
     trackPageView(routePath);
   }, [routePath]);
 
   useEffect(() => {
-    const parsed = parseDetailPath(window.location.pathname);
+    const path = window.location.pathname;
+    const parsed = parseDetailPath(path);
 
-    if (parsed) {
+    if (isAdminPath(path)) {
+      openAdminPanel(false);
+    } else if (parsed) {
       openDetailById({ media: parsed.media, id: parsed.id, pushState: false });
     } else {
       setRoutePath("/");
@@ -745,7 +767,9 @@ export default function App() {
       const path = window.location.pathname;
       const detail = parseDetailPath(path);
 
-      if (detail) {
+      if (isAdminPath(path)) {
+        openAdminPanel(false);
+      } else if (detail) {
         openDetailById({
           media: detail.media,
           id: detail.id,
@@ -758,7 +782,7 @@ export default function App() {
 
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [goHome, openDetailById]);
+  }, [goHome, openAdminPanel, openDetailById]);
 
   useEffect(() => {
     localStorage.setItem("cyberflix_lang", language);
@@ -1003,12 +1027,15 @@ export default function App() {
         user={authUser}
         labels={t.header}
         onOpenAuth={() => setShowAuthPanel(true)}
+        onOpenAdmin={() => openAdminPanel(true)}
         onLogout={handleLogout}
         onUpgrade={handleUpgrade}
       />
 
       <main className="mx-auto flex w-full max-w-7xl flex-col px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        {!selectedItem ? (
+        {isAdminRoute ? (
+          <AdminStreamsPanel user={authUser} onBack={() => goHome(true)} />
+        ) : !selectedItem ? (
           <>
             <Hero
               title={mediaType === "movie" ? t.hero.movieTitle : t.hero.tvTitle}

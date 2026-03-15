@@ -76,6 +76,33 @@ export const streamsAPI = {
         seasonNumber
       )}&episodeNumber=${encodeURIComponent(episodeNumber)}`
     ),
+
+  list: ({ mediaType = "", tmdbId = "" } = {}) => {
+    const params = new URLSearchParams();
+    if (mediaType) params.set("mediaType", mediaType);
+    if (tmdbId) params.set("tmdbId", tmdbId);
+    const query = params.toString();
+    return request(`/streams${query ? `?${query}` : ""}`);
+  },
+
+  create: (payload) =>
+    request("/streams", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+
+  update: (id, payload) =>
+    request(`/streams/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+
+  remove: (id) =>
+    request(`/streams/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
 };
 
 export const tmdbAPI = {
