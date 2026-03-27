@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="180" viewBox="0 0 720 180" fill="none">
+  <defs>
+    <linearGradient id="stroke" x1="18" y1="18" x2="122" y2="128">
+      <stop offset="0%" stop-color="#2DD4BF" />
+      <stop offset="52%" stop-color="#22D3EE" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+    <linearGradient id="bg" x1="26" y1="18" x2="108" y2="120">
+      <stop offset="0%" stop-color="#0B1329" />
+      <stop offset="100%" stop-color="#101A35" />
+    </linearGradient>
+    <linearGradient id="word" x1="150" y1="54" x2="520" y2="144">
+      <stop offset="0%" stop-color="#E2E8F0" />
+      <stop offset="48%" stop-color="#67E8F9" />
+      <stop offset="100%" stop-color="#F0ABFC" />
+    </linearGradient>
+  </defs>
+  <rect x="18" y="18" width="108" height="108" rx="30" fill="url(#bg)" stroke="url(#stroke)" stroke-width="4" />
+  <path d="M54 46C44.1 46 36 54.1 36 64V80C36 89.9 44.1 98 54 98H63" stroke="url(#stroke)" stroke-width="8" stroke-linecap="round" />
+  <path d="M88 48L106 66L88 84" stroke="#EC4899" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M62 54L83 72L62 90V54Z" fill="#E2E8F0" />
+  <circle cx="108" cy="38" r="6" fill="#22D3EE" fill-opacity=".85" />
+  <text x="150" y="54" fill="#7DD3FC" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="8">STREAMING HUB</text>
+  <text x="150" y="116" fill="url(#word)" font-family="Arial, sans-serif" font-size="56" font-weight="900" letter-spacing="10">CYBERFLIX</text>
+</svg>

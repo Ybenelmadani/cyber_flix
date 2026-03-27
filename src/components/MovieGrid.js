@@ -3,7 +3,7 @@ import MovieCard from "./MovieCard";
 
 function GridSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
       {Array.from({ length: 10 }).map((_, idx) => (
         <div key={idx} className="animate-pulse">
           <div className="mb-3 aspect-[2/3] rounded-2xl border border-cyber-cyan/10 bg-cyber-darker" />
@@ -36,7 +36,7 @@ export default function MovieGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
       {movies.map((movie) => (
         <MovieCard
           key={movie.id}

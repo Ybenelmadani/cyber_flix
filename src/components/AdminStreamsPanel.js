@@ -10,9 +10,11 @@ const emptyForm = {
   title: "",
   poster: "",
   sourceName: "",
-  sourceUrl: "",
+  sourceProvider: "custom",
+  sourcePlaybackId: "",
+  sourcePath: "",
   sourceType: "hls",
-  sourceQuality: "720p",
+  sourceQuality: "auto",
   sourceLanguage: "VO",
   isPremium: false,
 };
@@ -34,9 +36,11 @@ const toFormState = (stream) => {
     title: stream?.title || "",
     poster: stream?.poster || "",
     sourceName: source?.name || "",
-    sourceUrl: source?.url || "",
+    sourceProvider: source?.provider || "custom",
+    sourcePlaybackId: source?.playbackId || "",
+    sourcePath: source?.path || "",
     sourceType: source?.type || "hls",
-    sourceQuality: source?.quality || "720p",
+    sourceQuality: source?.quality || "auto",
     sourceLanguage: source?.language || "VO",
     isPremium: Boolean(source?.isPremium),
   };
@@ -52,7 +56,9 @@ const buildPayload = (form) => ({
   sources: [
     {
       name: String(form.sourceName || "").trim(),
-      url: String(form.sourceUrl).trim(),
+      provider: String(form.sourceProvider || "custom").trim(),
+      playbackId: String(form.sourcePlaybackId || "").trim(),
+      path: String(form.sourcePath || "").trim(),
       type: form.sourceType || "hls",
       quality: String(form.sourceQuality || "").trim(),
       language: String(form.sourceLanguage || "").trim(),
@@ -80,22 +86,25 @@ export default function AdminStreamsPanel({ user, onBack }) {
     return parts.join(" - ");
   }, [filters.mediaType, filters.tmdbId]);
 
-  const loadStreams = useCallback(async (nextFilters = filters) => {
-    if (!isAdmin) return;
+  const loadStreams = useCallback(
+    async (nextFilters = filters) => {
+      if (!isAdmin) return;
 
-    setLoading(true);
-    setError("");
-    setFeedback("");
+      setLoading(true);
+      setError("");
+      setFeedback("");
 
-    try {
-      const response = await streamsAPI.list(nextFilters);
-      setStreams(response.streams || []);
-    } catch (err) {
-      setError(err.message || "Unable to load streams.");
-    } finally {
-      setLoading(false);
-    }
-  }, [filters, isAdmin]);
+      try {
+        const response = await streamsAPI.list(nextFilters);
+        setStreams(response.streams || []);
+      } catch (err) {
+        setError(err.message || "Unable to load streams.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [filters, isAdmin]
+  );
 
   useEffect(() => {
     if (isAdmin) {
@@ -117,8 +126,9 @@ export default function AdminStreamsPanel({ user, onBack }) {
 
     try {
       const payload = buildPayload(form);
-      if (!payload.tmdbId || !payload.title || !payload.sources[0].url) {
-        throw new Error("tmdbId, title and source URL are required.");
+
+      if (!payload.tmdbId || !payload.title || !payload.sources[0].playbackId) {
+        throw new Error("tmdbId, title and playbackId are required.");
       }
 
       if (payload.mediaType === "tv" && (!form.seasonNumber || !form.episodeNumber)) {
@@ -291,11 +301,35 @@ export default function AdminStreamsPanel({ user, onBack }) {
 
             <input
               type="text"
-              value={form.sourceUrl}
-              onChange={(e) => setForm((prev) => ({ ...prev, sourceUrl: e.target.value }))}
-              placeholder="Source URL"
+              value={form.sourcePlaybackId}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, sourcePlaybackId: e.target.value }))
+              }
+              placeholder="Playback ID"
               className="input-cyber w-full"
             />
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <select
+                value={form.sourceProvider}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, sourceProvider: e.target.value }))
+                }
+                className="input-cyber w-full"
+              >
+                <option value="custom">custom</option>
+                <option value="cloudflare">cloudflare</option>
+                <option value="mux">mux</option>
+              </select>
+
+              <input
+                type="text"
+                value={form.sourcePath}
+                onChange={(e) => setForm((prev) => ({ ...prev, sourcePath: e.target.value }))}
+                placeholder="/videos/movie-123/master.m3u8"
+                className="input-cyber w-full"
+              />
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
               <select
@@ -311,7 +345,7 @@ export default function AdminStreamsPanel({ user, onBack }) {
                 type="text"
                 value={form.sourceQuality}
                 onChange={(e) => setForm((prev) => ({ ...prev, sourceQuality: e.target.value }))}
-                placeholder="720p"
+                placeholder="auto"
                 className="input-cyber w-full"
               />
 
@@ -410,7 +444,13 @@ export default function AdminStreamsPanel({ user, onBack }) {
                             : `movie / TMDB ${stream.tmdbId}`}
                         </p>
                         <p className="text-sm text-cyber-cyan/70 break-all">
-                          {source.url || "No source URL"}
+                          Provider: {source.provider || "custom"}
+                        </p>
+                        <p className="text-sm text-cyber-cyan/70 break-all">
+                          Playback ID: {source.playbackId || "No playbackId"}
+                        </p>
+                        <p className="text-sm text-cyber-cyan/70 break-all">
+                          Path: {source.path || "No path"}
                         </p>
                       </div>
 

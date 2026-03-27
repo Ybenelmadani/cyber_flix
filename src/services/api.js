@@ -21,7 +21,7 @@ export const setAuthToken = (token) => {
 
 export const clearAuthToken = () => localStorage.removeItem(TOKEN_KEY);
 
-const request = async (path, options = {}) => {
+export const request = async (path, options = {}) => {
   const token = getAuthToken();
 
   const headers = {
@@ -75,6 +75,20 @@ export const streamsAPI = {
       `/streams/tv/${tmdbId}?seasonNumber=${encodeURIComponent(
         seasonNumber
       )}&episodeNumber=${encodeURIComponent(episodeNumber)}`
+    ),
+
+  getMoviePlayback: (tmdbId, source = 0) =>
+    request(
+      `/streams/movie/${tmdbId}/play?source=${encodeURIComponent(source)}`
+    ),
+
+  getEpisodePlayback: (tmdbId, seasonNumber, episodeNumber, source = 0) =>
+    request(
+      `/streams/tv/${tmdbId}/play?seasonNumber=${encodeURIComponent(
+        seasonNumber
+      )}&episodeNumber=${encodeURIComponent(
+        episodeNumber
+      )}&source=${encodeURIComponent(source)}`
     ),
 
   list: ({ mediaType = "", tmdbId = "" } = {}) => {
@@ -152,6 +166,14 @@ export const tmdbAPI = {
 
   tvSeasonDetails: (id, seasonNumber, language) =>
     request(withLanguage(`/tmdb/tv/${id}/season/${seasonNumber}`, language)),
+
+  tvEpisodeDetails: (id, seasonNumber, episodeNumber, language) =>
+    request(
+      withLanguage(
+        `/tmdb/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`,
+        language
+      )
+    ),
 
   tvByGenre: (genreId, page = 1, language) =>
     request(withLanguage(`/tmdb/tv/genre/${genreId}?page=${page}`, language)),

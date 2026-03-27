@@ -18,9 +18,17 @@ export default function Player({
       return activeServer;
     }
 
+    if (activeServer && typeof activeServer === "object" && activeServer.id) {
+      const found = servers.find(
+        (server) => String(server?.id) === String(activeServer.id)
+      );
+      if (found) return found;
+    }
+
     if (typeof activeServer === "string") {
       const found = servers.find(
         (server) =>
+          String(server?.id) === activeServer ||
           server?.name === activeServer ||
           server?.quality === activeServer ||
           server?.url === activeServer
@@ -44,14 +52,18 @@ export default function Player({
 
     if (sourceUrl.includes("your-legal-stream.m3u8")) {
       setPlaybackError(
-        "This stream URL is still a placeholder. Replace it in .env, run npm run seed:streams, then reload."
+        "This stream URL is still a placeholder. Replace it in your stream source, then reload."
       );
       return;
     }
 
-    video.pause();
-    video.removeAttribute("src");
-    video.load();
+    try {
+      video.pause();
+      if (videoRef.current) {
+        video.removeAttribute("src");
+        video.load();
+      }
+    } catch {}
 
     const handleVideoError = () => {
       setPlaybackError("Unable to load this video source.");
@@ -63,12 +75,34 @@ export default function Player({
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = sourceUrl;
       } else if (Hls.isSupported()) {
-        hlsInstance = new Hls();
+        hlsInstance = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+        });
+
         hlsInstance.on(Hls.Events.ERROR, (_, data) => {
-          if (data?.fatal) {
-            setPlaybackError("Unable to load this HLS stream.");
+          if (!data) return;
+
+          if (data.fatal) {
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              setPlaybackError("Network error while loading this HLS stream.");
+              try {
+                hlsInstance.startLoad();
+              } catch {}
+            } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+              setPlaybackError("Media error while playing this HLS stream.");
+              try {
+                hlsInstance.recoverMediaError();
+              } catch {}
+            } else {
+              setPlaybackError("Unable to load this HLS stream.");
+              try {
+                hlsInstance.destroy();
+              } catch {}
+            }
           }
         });
+
         hlsInstance.loadSource(sourceUrl);
         hlsInstance.attachMedia(video);
       } else {
@@ -80,8 +114,15 @@ export default function Player({
 
     return () => {
       video.removeEventListener("error", handleVideoError);
+
+      try {
+        video.pause();
+      } catch {}
+
       if (hlsInstance) {
-        hlsInstance.destroy();
+        try {
+          hlsInstance.destroy();
+        } catch {}
       }
     };
   }, [activeSource]);
@@ -98,7 +139,7 @@ export default function Player({
 
   return (
     <div className="overflow-hidden rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker">
-      <div className="flex overflow-x-auto bg-cyber-darker/80 border-b border-cyber-cyan/20 scrollbar-hide">
+      <div className="flex overflow-x-auto border-b border-cyber-cyan/20 bg-cyber-darker/80 scrollbar-hide">
         {servers.map((server, index) => {
           const serverName =
             server.name ||
@@ -108,18 +149,16 @@ export default function Player({
             `Server ${index + 1}`;
 
           const isActive =
-            activeSource?.url && server?.url
-              ? activeSource.url === server.url
-              : index === 0;
+            String(activeSource?.id || "") === String(server?.id || "");
 
           return (
             <button
-              key={server.url || `${serverName}-${index}`}
+              key={server.id || server.url || `${serverName}-${index}`}
               onClick={() => setActiveServer(server)}
-              className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all sm:px-6 sm:py-4 ${
+              className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-all sm:px-6 sm:py-4 ${
                 isActive
                   ? "server-active"
-                  : "text-cyber-cyan/70 hover:text-cyber-cyan hover:bg-cyber-cyan/5"
+                  : "text-cyber-cyan/70 hover:bg-cyber-cyan/5 hover:text-cyber-cyan"
               }`}
             >
               {serverName}
@@ -133,7 +172,7 @@ export default function Player({
           ref={videoRef}
           controls
           poster={poster}
-          className="w-full h-full"
+          className="h-full w-full"
           preload="metadata"
         >
           Your browser does not support video playback.
@@ -141,7 +180,7 @@ export default function Player({
       </div>
 
       {playbackError ? (
-        <div className="px-4 py-3 border-t border-rose-400/20 bg-rose-500/10 text-rose-200 text-sm">
+        <div className="border-t border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
           {playbackError}
         </div>
       ) : null}

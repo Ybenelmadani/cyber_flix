@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import MovieGrid from "./components/MovieGrid";
 import MovieDetail from "./components/MovieDetail";
+import EpisodeDetail from "./components/EpisodeDetail";
 import AdminStreamsPanel from "./components/AdminStreamsPanel";
 import Genres from "./components/Genres";
 import Footer from "./components/Footer";
@@ -29,17 +30,34 @@ const API_LANGUAGE_MAP = {
 const ADMIN_STREAMS_PATH = "/admin/streams";
 
 const parseDetailPath = (path) => {
+  const episodeMatch = path.match(
+    /^\/tv\/(\d+)\/season\/(\d+)\/episode\/(\d+)$/i
+  );
+
+  if (episodeMatch) {
+    return {
+      type: "episode",
+      media: "tv",
+      id: Number(episodeMatch[1]),
+      seasonNumber: Number(episodeMatch[2]),
+      episodeNumber: Number(episodeMatch[3]),
+    };
+  }
+
   const match = path.match(/^\/(movie|tv)\/(\d+)$/i);
   if (!match) {
     return null;
   }
   return {
+    type: "detail",
     media: match[1].toLowerCase(),
     id: Number(match[2]),
   };
 };
 
 const detailPath = (media, id) => `/${media}/${id}`;
+const episodeDetailPath = (id, seasonNumber, episodeNumber) =>
+  `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`;
 const isAdminPath = (path) => path === ADMIN_STREAMS_PATH;
 
 const setMeta = (name, content) => {
@@ -72,6 +90,7 @@ const TRANSLATIONS = {
       },
     },
     header: {
+      home: "Home",
       genres: "Genres",
       searchPlaceholder: "Search for a movie or series...",
       login: "Login",
@@ -174,6 +193,7 @@ const TRANSLATIONS = {
       },
     },
     header: {
+      home: "Accueil",
       genres: "Genres",
       searchPlaceholder: "Rechercher un film ou une serie...",
       login: "Connexion",
@@ -379,6 +399,8 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState("popular");
   const [favorites, setFavorites] = useState([]);
   const [selectedSeason, setSelectedSeason] = useState(null);
+  const [selectedEpisode, setSelectedEpisode] = useState(null);
+  const [selectedEpisodeDetails, setSelectedEpisodeDetails] = useState(null);
   const [seasonDetails, setSeasonDetails] = useState(null);
   const [watchProviders, setWatchProviders] = useState(null);
   const [providerCountry, setProviderCountry] = useState("MA");
@@ -390,6 +412,7 @@ export default function App() {
 
   const [servers, setServers] = useState([]);
   const [activeServer, setActiveServer] = useState(null);
+  const previousSearchQueryRef = useRef("");
 
   const t = TRANSLATIONS[language] || TRANSLATIONS.en;
   const apiLanguage = API_LANGUAGE_MAP[language] || API_LANGUAGE_MAP.en;
@@ -478,30 +501,67 @@ export default function App() {
   }, []);
 
   const clearError = () => setError("");
-  const scrollToPlayer = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
 
   const normalizeServers = useCallback((sources = []) => {
-    return sources
-      .filter((source) => source?.url)
-      .map((source, index) => ({
-        name:
-          source.name ||
-          `${source.quality || "Server"}${
-            source.language ? ` - ${source.language}` : ""
-          }` ||
-          `Server ${index + 1}`,
-        url: source.url,
-        type: source.type || (source.url?.includes(".m3u8") ? "hls" : "mp4"),
-        quality: source.quality || null,
-        language: source.language || null,
-        isPremium: Boolean(source.isPremium),
-      }));
+    return sources.map((source, index) => ({
+      id: source.id ?? String(index),
+      name:
+        source.name ||
+        `${source.quality || "Server"}${
+          source.language ? ` - ${source.language}` : ""
+        }`,
+      type: source.type || "hls",
+      quality: source.quality || null,
+      language: source.language || null,
+      isPremium: Boolean(source.isPremium),
+      url: source.url || "",
+    }));
   }, []);
 
+  const resolvePlaybackServer = useCallback(
+    async ({
+      media,
+      tmdbId,
+      seasonNumber = null,
+      episodeNumber = null,
+      sourceIndex = 0,
+    }) => {
+      const response =
+        media === "movie"
+          ? await streamsAPI.getMoviePlayback(tmdbId, sourceIndex)
+          : await streamsAPI.getEpisodePlayback(
+              tmdbId,
+              seasonNumber,
+              episodeNumber,
+              sourceIndex
+            );
+
+      const playback = response?.playback;
+
+      if (!playback?.url) {
+        throw new Error("No playback url returned");
+      }
+
+      return {
+        id: String(sourceIndex),
+        name:
+          playback.name ||
+          `${playback.quality || "Server"}${
+            playback.language ? ` - ${playback.language}` : ""
+          }`,
+        url: playback.url,
+        type: playback.type || "hls",
+        quality: playback.quality || null,
+        language: playback.language || null,
+        isPremium: Boolean(playback.isPremium),
+      };
+    },
+    []
+  );
+
   const loadAuthUser = useCallback(async () => {
-    if (!getAuthToken()) {
+    const token = getAuthToken();
+    if (!token) {
       setAuthUser(null);
       setFavorites([]);
       return;
@@ -509,7 +569,7 @@ export default function App() {
 
     try {
       const response = await authAPI.me();
-      setAuthUser(response.user);
+      setAuthUser(response?.user || null);
     } catch {
       clearAuthToken();
       setAuthUser(null);
@@ -616,6 +676,8 @@ export default function App() {
         );
         setSeasonDetails(season);
         setSelectedSeason(seasonNumber);
+        setSelectedEpisode(null);
+        setSelectedEpisodeDetails(null);
         setServers([]);
         setActiveServer(null);
       } catch {
@@ -625,29 +687,82 @@ export default function App() {
     [apiLanguage, t.errors.season]
   );
 
+  const openEpisodeDetail = useCallback(
+    async ({
+      showId,
+      seasonNumber,
+      episodeNumber,
+      pushState = true,
+      seedShow = null,
+    }) => {
+      const path = episodeDetailPath(showId, seasonNumber, episodeNumber);
+
+      if (pushState) {
+        window.history.pushState({}, "", path);
+      }
+
+      setRoutePath(path);
+      setMediaType("tv");
+      setSelectedItem(seedShow || { id: showId, title: "...", name: "..." });
+      setSelectedDetails(null);
+      setSelectedEpisodeDetails({
+        id: `episode-${episodeNumber}`,
+        name: "...",
+        season_number: seasonNumber,
+        episode_number: episodeNumber,
+      });
+      setSeasonDetails(null);
+      setSelectedSeason(seasonNumber);
+      setSelectedEpisode(episodeNumber);
+      setWatchProviders(null);
+      setServers([]);
+      setActiveServer(null);
+      setIsDetailsLoading(true);
+      clearError();
+
+      try {
+        const [showDetails, episodeDetails, season] = await Promise.all([
+          tmdbAPI.tvDetails(showId, apiLanguage),
+          tmdbAPI.tvEpisodeDetails(
+            showId,
+            seasonNumber,
+            episodeNumber,
+            apiLanguage
+          ),
+          tmdbAPI.tvSeasonDetails(showId, seasonNumber, apiLanguage),
+        ]);
+
+        setSelectedDetails(showDetails);
+        setSelectedEpisodeDetails(episodeDetails);
+        setSeasonDetails(season);
+        trackEvent("open_episode_detail", {
+          media_type: "tv",
+          item_id: showId,
+          season_number: seasonNumber,
+          episode_number: episodeNumber,
+        });
+      } catch {
+        setError(t.errors.details);
+      } finally {
+        setIsDetailsLoading(false);
+      }
+    },
+    [apiLanguage, t.errors.details]
+  );
+
   const handleEpisodeSelect = useCallback(
     async (episodeNumber) => {
       const showId = (selectedDetails || selectedItem)?.id;
       if (!showId || !selectedSeason) return;
-      clearError();
-
-      try {
-        const response = await streamsAPI.getEpisodeStream(
-          showId,
-          selectedSeason,
-          episodeNumber
-        );
-        const episodeServers = normalizeServers(response?.stream?.sources || []);
-        setServers(episodeServers);
-        setActiveServer(episodeServers[0] || null);
-        window.requestAnimationFrame(scrollToPlayer);
-      } catch (err) {
-        setServers([]);
-        setActiveServer(null);
-        setError(err.message || t.errors.details);
-      }
+      await openEpisodeDetail({
+        showId,
+        seasonNumber: selectedSeason,
+        episodeNumber,
+        pushState: true,
+        seedShow: selectedDetails || selectedItem,
+      });
     },
-    [normalizeServers, scrollToPlayer, selectedDetails, selectedItem, selectedSeason, t.errors.details]
+    [openEpisodeDetail, selectedDetails, selectedItem, selectedSeason]
   );
 
   const openDetailById = useCallback(
@@ -662,8 +777,10 @@ export default function App() {
       setMediaType(media);
       setSelectedItem(seedItem || { id, title: "...", name: "..." });
       setSelectedDetails(null);
+      setSelectedEpisodeDetails(null);
       setSeasonDetails(null);
       setSelectedSeason(null);
+      setSelectedEpisode(null);
       setWatchProviders(null);
       setServers([]);
       setActiveServer(null);
@@ -692,7 +809,18 @@ export default function App() {
               streamResponse?.stream?.sources || []
             );
             setServers(movieServers);
-            setActiveServer(movieServers[0] || null);
+            setSelectedEpisode(null);
+
+            if (movieServers.length > 0) {
+              const playbackServer = await resolvePlaybackServer({
+                media: "movie",
+                tmdbId: id,
+                sourceIndex: Number(movieServers[0].id || 0),
+              });
+              setActiveServer(playbackServer);
+            } else {
+              setActiveServer(null);
+            }
           } catch {
             setServers([]);
             setActiveServer(null);
@@ -715,7 +843,44 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadSeason, normalizeServers, t.errors.details]
+    [apiLanguage, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
+  );
+
+  const handleServerChange = useCallback(
+    async (server) => {
+      try {
+        if (!selectedDetails?.id) return;
+
+        const sourceIndex = Number(server?.id || 0);
+
+        const playbackServer =
+          mediaType === "movie"
+            ? await resolvePlaybackServer({
+                media: "movie",
+                tmdbId: selectedDetails.id,
+                sourceIndex,
+              })
+            : await resolvePlaybackServer({
+                media: "tv",
+                tmdbId: selectedDetails.id,
+                seasonNumber: selectedSeason,
+                episodeNumber: selectedEpisode,
+                sourceIndex,
+              });
+
+        setActiveServer(playbackServer);
+      } catch (err) {
+        setError(err.message || t.errors.details);
+      }
+    },
+    [
+      mediaType,
+      resolvePlaybackServer,
+      selectedDetails,
+      selectedEpisode,
+      selectedSeason,
+      t.errors.details,
+    ]
   );
 
   const goHome = useCallback((pushState = true) => {
@@ -725,12 +890,20 @@ export default function App() {
     setRoutePath("/");
     setSelectedItem(null);
     setSelectedDetails(null);
+    setSelectedEpisodeDetails(null);
     setSelectedSeason(null);
+    setSelectedEpisode(null);
     setSeasonDetails(null);
     setWatchProviders(null);
     setServers([]);
     setActiveServer(null);
   }, []);
+
+  const handleGoHome = useCallback(() => {
+    setSearchQuery("");
+    setError("");
+    goHome(true);
+  }, [goHome]);
 
   const openAdminPanel = useCallback((pushState = true) => {
     if (pushState) {
@@ -739,7 +912,9 @@ export default function App() {
     setRoutePath(ADMIN_STREAMS_PATH);
     setSelectedItem(null);
     setSelectedDetails(null);
+    setSelectedEpisodeDetails(null);
     setSelectedSeason(null);
+    setSelectedEpisode(null);
     setSeasonDetails(null);
     setWatchProviders(null);
     setServers([]);
@@ -757,6 +932,13 @@ export default function App() {
 
     if (isAdminPath(path)) {
       openAdminPanel(false);
+    } else if (parsed?.type === "episode") {
+      openEpisodeDetail({
+        showId: parsed.id,
+        seasonNumber: parsed.seasonNumber,
+        episodeNumber: parsed.episodeNumber,
+        pushState: false,
+      });
     } else if (parsed) {
       openDetailById({ media: parsed.media, id: parsed.id, pushState: false });
     } else {
@@ -769,6 +951,13 @@ export default function App() {
 
       if (isAdminPath(path)) {
         openAdminPanel(false);
+      } else if (detail?.type === "episode") {
+        openEpisodeDetail({
+          showId: detail.id,
+          seasonNumber: detail.seasonNumber,
+          episodeNumber: detail.episodeNumber,
+          pushState: false,
+        });
       } else if (detail) {
         openDetailById({
           media: detail.media,
@@ -782,7 +971,7 @@ export default function App() {
 
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [goHome, openAdminPanel, openDetailById]);
+  }, [goHome, openAdminPanel, openDetailById, openEpisodeDetail]);
 
   useEffect(() => {
     localStorage.setItem("cyberflix_lang", language);
@@ -794,7 +983,19 @@ export default function App() {
   useEffect(() => {
     const titleBase = mediaType === "movie" ? "Movies" : "Series";
 
-    if (selectedDetails) {
+    if (selectedEpisodeDetails) {
+      const episodeTitle =
+        selectedEpisodeDetails.name ||
+        `Episode ${selectedEpisodeDetails.episode_number || ""}`.trim();
+      const parentTitle =
+        selectedDetails?.title || selectedDetails?.name || "Series";
+      document.title = `${parentTitle} - ${episodeTitle} | CYBERFLIX`;
+      setMeta(
+        "description",
+        selectedEpisodeDetails.overview ||
+          `Episode details, trailer and cast for ${episodeTitle}.`
+      );
+    } else if (selectedDetails) {
       const detailTitle =
         selectedDetails.title || selectedDetails.name || "Details";
       document.title = `${detailTitle} | CYBERFLIX`;
@@ -810,7 +1011,7 @@ export default function App() {
         "Movies and series discovery platform with legal watch providers."
       );
     }
-  }, [mediaType, selectedDetails]);
+  }, [mediaType, selectedDetails, selectedEpisodeDetails]);
 
   useEffect(() => {
     loadAuthUser();
@@ -828,17 +1029,22 @@ export default function App() {
   useEffect(() => {
     if (routePath !== "/") return;
 
-    const timer = setTimeout(async () => {
-      const query = searchQuery.trim();
+    const query = searchQuery.trim();
 
-      if (!query) {
+    if (!query) {
+      if (previousSearchQueryRef.current) {
+        previousSearchQueryRef.current = "";
         loadItems({
           category: activeCategory,
           genreId: selectedGenre?.id || null,
           media: mediaType,
         });
-        return;
       }
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      previousSearchQueryRef.current = query;
 
       setSelectedGenre(null);
       setActiveCategory("popular");
@@ -892,6 +1098,7 @@ export default function App() {
   const isSelectedFavorite = favorites.some(
     (fav) => fav.favoriteKey === selectedFavoriteKey
   );
+
   const heroStats = [
     {
       label: language === "fr" ? "Titres visibles" : "Visible titles",
@@ -915,9 +1122,19 @@ export default function App() {
   };
 
   const handleGenreSelect = async (genre) => {
+    if (routePath !== "/") {
+      goHome(true);
+    }
     setSelectedGenre(genre);
     setActiveCategory("popular");
     await loadItems({ category: "popular", genreId: genre.id, media: mediaType });
+  };
+
+  const handleHeaderSearchChange = (value) => {
+    if (routePath !== "/") {
+      goHome(true);
+    }
+    setSearchQuery(value);
   };
 
   const handleToggleFavorite = async () => {
@@ -1017,9 +1234,10 @@ export default function App() {
     >
       <Header
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={handleHeaderSearchChange}
         genres={genres}
         onGenreSelect={handleGenreSelect}
+        onGoHome={handleGoHome}
         genreLabel={t.header.genres}
         searchPlaceholder={t.header.searchPlaceholder}
         languageSwitchLabel={nextLanguageLabel}
@@ -1108,7 +1326,7 @@ export default function App() {
                   <p className="mb-3 text-sm font-semibold text-cyan-50">
                     {uiCopy.categoryLabel}
                   </p>
-                  <div className="flex flex-wrap gap-1  ">
+                  <div className="flex flex-wrap gap-1">
                     {Object.entries(currentCategories).map(([key, label]) => (
                       <button
                         key={key}
@@ -1230,27 +1448,44 @@ export default function App() {
               </div>
             ) : null}
 
-            <MovieDetail
-              mediaType={mediaType}
-              movie={selectedDetails || selectedItem}
-              seasonDetails={seasonDetails}
-              watchProviders={watchProviders}
-              providerCountry={providerCountry}
-              onProviderCountryChange={setProviderCountry}
-              selectedSeason={selectedSeason}
-              onSeasonSelect={(seasonNumber) =>
-                loadSeason((selectedDetails || selectedItem).id, seasonNumber)
-              }
-              onEpisodeSelect={handleEpisodeSelect}
-              onBack={() => goHome(true)}
-              onToggleFavorite={handleToggleFavorite}
-              isFavorite={isSelectedFavorite}
-              isLoading={isDetailsLoading}
-              labels={t.detail}
-              servers={servers}
-              activeServer={activeServer}
-              setActiveServer={setActiveServer}
-            />
+            {selectedEpisodeDetails ? (
+              <EpisodeDetail
+                show={selectedDetails || selectedItem}
+                episode={selectedEpisodeDetails}
+                isLoading={isDetailsLoading}
+                labels={t.detail}
+                onBack={() =>
+                  openDetailById({
+                    media: "tv",
+                    id: (selectedDetails || selectedItem)?.id,
+                    seedItem: selectedDetails || selectedItem,
+                    pushState: true,
+                  })
+                }
+              />
+            ) : (
+              <MovieDetail
+                mediaType={mediaType}
+                movie={selectedDetails || selectedItem}
+                seasonDetails={seasonDetails}
+                watchProviders={watchProviders}
+                providerCountry={providerCountry}
+                onProviderCountryChange={setProviderCountry}
+                selectedSeason={selectedSeason}
+                onSeasonSelect={(seasonNumber) =>
+                  loadSeason((selectedDetails || selectedItem).id, seasonNumber)
+                }
+                onEpisodeSelect={handleEpisodeSelect}
+                onBack={() => goHome(true)}
+                onToggleFavorite={handleToggleFavorite}
+                isFavorite={isSelectedFavorite}
+                isLoading={isDetailsLoading}
+                labels={t.detail}
+                servers={servers}
+                activeServer={activeServer}
+                setActiveServer={handleServerChange}
+              />
+            )}
           </>
         )}
       </main>
