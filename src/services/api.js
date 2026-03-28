@@ -1,4 +1,19 @@
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3001/api";
+const normalizeApiBase = (value) => {
+  const fallback = "http://localhost:3001/api";
+
+  if (!value) {
+    return fallback;
+  }
+
+  const trimmed = value.replace(/\/+$/, "");
+  if (trimmed.endsWith("/api")) {
+    return trimmed;
+  }
+
+  return `${trimmed}/api`;
+};
+
+const API_BASE = normalizeApiBase(process.env.REACT_APP_API_BASE);
 const TOKEN_KEY = "cyberflix_token";
 
 const parseResponseBody = async (response) => {
@@ -42,7 +57,7 @@ export const request = async (path, options = {}) => {
     });
   } catch {
     const networkError = new Error(
-      "Unable to reach backend. Verify API is running on port 3001."
+      `Unable to reach backend. Verify API is available at ${API_BASE}.`
     );
     networkError.status = 0;
     throw networkError;

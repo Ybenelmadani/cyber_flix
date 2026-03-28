@@ -905,6 +905,18 @@ export default function App() {
     goHome(true);
   }, [goHome]);
 
+  const handleOpenGenres = useCallback(() => {
+    if (routePath !== "/") {
+      goHome(true);
+      window.setTimeout(() => {
+        scrollToSection("genres-section");
+      }, 150);
+      return;
+    }
+
+    scrollToSection("genres-section");
+  }, [goHome, routePath, scrollToSection]);
+
   const openAdminPanel = useCallback((pushState = true) => {
     if (pushState) {
       window.history.pushState({}, "", ADMIN_STREAMS_PATH);
@@ -1237,6 +1249,7 @@ export default function App() {
         setSearchQuery={handleHeaderSearchChange}
         genres={genres}
         onGenreSelect={handleGenreSelect}
+        onOpenGenres={handleOpenGenres}
         onGoHome={handleGoHome}
         genreLabel={t.header.genres}
         searchPlaceholder={t.header.searchPlaceholder}
