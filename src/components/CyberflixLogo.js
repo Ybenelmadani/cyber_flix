@@ -56,18 +56,25 @@ function LogoMark({ className = "h-11 w-11" }) {
 
 export default function CyberflixLogo({ compact = false }) {
   return (
-    <span className="inline-flex items-center gap-3">
-      <LogoMark className={compact ? "h-10 w-10" : "h-11 w-11"} />
+    <span className={`inline-flex items-center ${compact ? "gap-2.5" : "gap-3"}`}>
+      <LogoMark className={compact ? "h-8 w-8" : "h-11 w-11"} />
 
       <span className="flex flex-col">
-        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.35em] text-cyber-cyan/60">
+        <span
+          className={`font-semibold uppercase tracking-[0.35em] text-cyber-cyan/60 ${
+            compact ? "text-[0.5rem]" : "text-[0.68rem]"
+          }`}
+        >
           Streaming hub
         </span>
-        <span className="bg-[linear-gradient(135deg,#E2E8F0_0%,#67E8F9_48%,#F0ABFC_100%)] bg-clip-text text-2xl font-black tracking-[0.18em] text-transparent sm:text-3xl">
+        <span
+          className={`bg-[linear-gradient(135deg,#E2E8F0_0%,#67E8F9_48%,#F0ABFC_100%)] bg-clip-text font-black tracking-[0.18em] text-transparent ${
+            compact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl"
+          }`}
+        >
           CYBERFLIX
         </span>
       </span>
     </span>
   );
 }
-
