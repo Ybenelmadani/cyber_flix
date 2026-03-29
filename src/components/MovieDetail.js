@@ -1,5 +1,6 @@
 import React from "react";
 import Player from "./Player";
+import TitleReviews from "./TitleReviews";
 
 const FALLBACK_POSTER =
   "data:image/svg+xml;charset=UTF-8," +
@@ -148,6 +149,8 @@ export default function MovieDetail({
   servers = [],
   activeServer,
   setActiveServer,
+  currentUser = null,
+  onRequireAuth = () => {},
 }) {
   if (!movie) return null;
 
@@ -366,6 +369,14 @@ export default function MovieDetail({
               </div>
             </section>
           ) : null}
+
+          <TitleReviews
+            mediaType={mediaType}
+            itemId={movie.id}
+            labels={text}
+            currentUser={currentUser}
+            onRequireAuth={onRequireAuth}
+          />
 
           <section className="card-neon p-5 sm:p-6">
             <h2 className="text-xl font-bold text-cyber-cyan">

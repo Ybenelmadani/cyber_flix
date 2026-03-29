@@ -221,6 +221,59 @@ export const moviesAPI = {
     request(`/movies/favorites/${encodeURIComponent(movieId)}`, {
       method: "DELETE",
     }),
+
+  getReviews: (mediaType, itemId) =>
+    request(
+      `/movies/${encodeURIComponent(mediaType)}/${encodeURIComponent(
+        itemId
+      )}/reviews`
+    ),
+
+  upsertReview: (mediaType, itemId, payload) =>
+    request(
+      `/movies/${encodeURIComponent(mediaType)}/${encodeURIComponent(
+        itemId
+      )}/reviews`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    ),
+
+  deleteReview: (mediaType, itemId) =>
+    request(
+      `/movies/${encodeURIComponent(mediaType)}/${encodeURIComponent(
+        itemId
+      )}/reviews`,
+      {
+        method: "DELETE",
+      }
+    ),
+
+  createReviewReply: (mediaType, itemId, reviewId, payload) =>
+    request(
+      `/movies/${encodeURIComponent(mediaType)}/${encodeURIComponent(
+        itemId
+      )}/reviews/${encodeURIComponent(reviewId)}/replies`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    ),
+
+  deleteReviewReply: (mediaType, itemId, reviewId, replyId) =>
+    request(
+      `/movies/${encodeURIComponent(mediaType)}/${encodeURIComponent(
+        itemId
+      )}/reviews/${encodeURIComponent(reviewId)}/replies/${encodeURIComponent(
+        replyId
+      )}`,
+      {
+        method: "DELETE",
+      }
+    ),
 };
 
 export const authAPI = {

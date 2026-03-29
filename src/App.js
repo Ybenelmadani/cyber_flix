@@ -155,6 +155,27 @@ const TRANSLATIONS = {
       rent: "Rent",
       buy: "Buy",
       free: "Free",
+      reviewsTitle: "Community reviews",
+      reviewsSubtitle: "Share your opinion and rating with other viewers.",
+      reviewsAverage: "Average",
+      reviewsRatingsCount: "Ratings",
+      reviewsCommentsCount: "Comments",
+      reviewsMyRating: "Your rating",
+      reviewsMyComment: "Your comment",
+      reviewsMyCommentPlaceholder: "Write your opinion about this title...",
+      reviewsSave: "Publish review",
+      reviewsUpdate: "Update review",
+      reviewsDelete: "Delete my review",
+      reviewsEmpty: "No reviews yet. Be the first to share your opinion.",
+      reviewsLoginHint: "Sign in to post your review and rating.",
+      reviewsPostedOn: "Posted",
+      reviewsEdited: "edited",
+      reviewsReply: "Reply",
+      reviewsReplyPlaceholder: "Write your reply...",
+      reviewsPostReply: "Post reply",
+      reviewsCancelReply: "Cancel",
+      reviewsDeleteReply: "Delete reply",
+      reviewsReplyingTo: "Replying to",
       na: "N/A",
     },
     auth: {
@@ -259,6 +280,30 @@ const TRANSLATIONS = {
       rent: "Location",
       buy: "Achat",
       free: "Gratuit",
+      reviewsTitle: "Avis de la communaute",
+      reviewsSubtitle:
+        "Partage ton avis et ta note avec les autres spectateurs.",
+      reviewsAverage: "Moyenne",
+      reviewsRatingsCount: "Notes",
+      reviewsCommentsCount: "Commentaires",
+      reviewsMyRating: "Ta note",
+      reviewsMyComment: "Ton commentaire",
+      reviewsMyCommentPlaceholder:
+        "Ecris ton avis sur ce film ou cette serie...",
+      reviewsSave: "Publier l'avis",
+      reviewsUpdate: "Mettre a jour l'avis",
+      reviewsDelete: "Supprimer mon avis",
+      reviewsEmpty:
+        "Aucun avis pour le moment. Sois le premier a partager ton opinion.",
+      reviewsLoginHint: "Connecte-toi pour publier ta note et ton avis.",
+      reviewsPostedOn: "Publie le",
+      reviewsEdited: "modifie",
+      reviewsReply: "Repondre",
+      reviewsReplyPlaceholder: "Ecris ta reponse...",
+      reviewsPostReply: "Publier la reponse",
+      reviewsCancelReply: "Annuler",
+      reviewsDeleteReply: "Supprimer la reponse",
+      reviewsReplyingTo: "Reponse a",
       na: "N/A",
     },
     auth: {
@@ -1484,6 +1529,8 @@ export default function App() {
                 servers={servers}
                 activeServer={activeServer}
                 setActiveServer={handleServerChange}
+                currentUser={authUser}
+                onRequireAuth={() => setShowAuthPanel(true)}
               />
             )}
           </>
