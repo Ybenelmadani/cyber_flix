@@ -50,7 +50,7 @@ export default function MovieCard({
           ) : null}
         </div>
 
-        <div className="absolute right-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full border border-cyber-fuchsia/30 bg-cyber-dark/75 text-cyber-fuchsia shadow-lg shadow-cyber-fuchsia/10 sm:hidden">
+        <div className="absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-full border border-cyber-fuchsia/30 bg-cyber-dark/75 text-cyber-fuchsia shadow-lg shadow-cyber-fuchsia/10 sm:hidden">
           <Play className="mr-0.5 h-4 w-4 fill-current" />
         </div>
 
