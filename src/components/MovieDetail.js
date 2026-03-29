@@ -353,15 +353,16 @@ export default function MovieDetail({
                 {text.trailer || "Trailer"}
               </h3>
 
-              <div className="aspect-video overflow-hidden rounded-[1.5rem] border border-cyber-cyan/20">
-                <iframe
-                  title="trailer"
-                  width="100%"
-                  height="100%"
-                  src={`https://www.youtube.com/embed/${trailer.key}`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+              <div className="w-full overflow-hidden rounded-[1.5rem] border border-cyber-cyan/20">
+                <div className="relative w-full pt-[56.25%]">
+                  <iframe
+                    title="trailer"
+                    className="absolute inset-0 h-full w-full"
+                    src={`https://www.youtube.com/embed/${trailer.key}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               </div>
             </section>
           ) : null}

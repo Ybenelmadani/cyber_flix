@@ -1326,13 +1326,13 @@ export default function App() {
                   <p className="mb-3 text-sm font-semibold text-cyan-50">
                     {uiCopy.categoryLabel}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {Object.entries(currentCategories).map(([key, label]) => (
                       <button
                         key={key}
                         type="button"
                         onClick={() => handleCategoryChange(key)}
-                        className={`rounded-2xl w-50 border px-4 py-3 text-sm font-semibold transition ${
+                        className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
                           activeCategory === key
                             ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
                             : "border-cyber-cyan/30 text-cyber-cyan hover:border-cyber-cyan"
