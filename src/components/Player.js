@@ -15,6 +15,26 @@ export default function Player({
     if (!Array.isArray(servers) || servers.length === 0) return null;
 
     if (activeServer && typeof activeServer === "object" && activeServer.url) {
+      const foundById = servers.find(
+        (server) => String(server?.id || "") === String(activeServer?.id || "")
+      );
+      if (foundById) {
+        return {
+          ...foundById,
+          ...activeServer,
+        };
+      }
+
+      const foundByUrl = servers.find(
+        (server) => String(server?.url || "") === String(activeServer?.url || "")
+      );
+      if (foundByUrl) {
+        return {
+          ...foundByUrl,
+          ...activeServer,
+        };
+      }
+
       return activeServer;
     }
 
@@ -46,7 +66,24 @@ export default function Player({
     let hlsInstance = null;
     const sourceUrl = activeSource.url;
     const sourceType =
-      activeSource.type || (sourceUrl.includes(".m3u8") ? "hls" : "mp4");
+      activeSource.type ||
+      (sourceUrl.includes("youtube.com/embed/") ||
+      sourceUrl.includes("player.vimeo.com/video/") ||
+      sourceUrl.includes("dailymotion.com/embed/video/")
+        ? "embed"
+        : sourceUrl.includes(".m3u8")
+        ? "hls"
+        : "mp4");
+
+    if (sourceType === "embed") {
+      try {
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+      } catch {}
+      setPlaybackError("");
+      return undefined;
+    }
 
     setPlaybackError("");
 
@@ -127,6 +164,20 @@ export default function Player({
     };
   }, [activeSource]);
 
+  const resolvedSourceType = useMemo(() => {
+    const sourceUrl = String(activeSource?.url || "");
+    return (
+      activeSource?.type ||
+      (sourceUrl.includes("youtube.com/embed/") ||
+      sourceUrl.includes("player.vimeo.com/video/") ||
+      sourceUrl.includes("dailymotion.com/embed/video/")
+        ? "embed"
+        : sourceUrl.includes(".m3u8")
+        ? "hls"
+        : "mp4")
+    );
+  }, [activeSource]);
+
   if (!servers.length) {
     return (
       <div className="overflow-hidden rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker">
@@ -161,22 +212,43 @@ export default function Player({
                   : "text-cyber-cyan/70 hover:bg-cyber-cyan/5 hover:text-cyber-cyan"
               }`}
             >
-              {serverName}
+              <span>{serverName}</span>
+              {server.isLegal ? (
+                <span className="ml-2 rounded-full border border-emerald-300/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
+                  LEGAL
+                </span>
+              ) : null}
+              {server.isPremium ? (
+                <span className="ml-2 rounded-full border border-amber-300/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                  PREMIUM
+                </span>
+              ) : null}
             </button>
           );
         })}
       </div>
 
       <div className="aspect-video bg-black">
-        <video
-          ref={videoRef}
-          controls
-          poster={poster}
-          className="h-full w-full"
-          preload="metadata"
-        >
-          Your browser does not support video playback.
-        </video>
+        {resolvedSourceType === "embed" ? (
+          <iframe
+            title={title || activeSource?.name || "Embedded stream"}
+            src={activeSource?.url}
+            className="h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowFullScreen
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            controls
+            poster={poster}
+            className="h-full w-full"
+            preload="metadata"
+          >
+            Your browser does not support video playback.
+          </video>
+        )}
       </div>
 
       {playbackError ? (
@@ -188,6 +260,7 @@ export default function Player({
       {title ? (
         <div className="border-t border-cyber-cyan/20 px-4 py-3 text-sm text-cyber-cyan/80">
           {title}
+          {activeSource?.provider ? ` - ${activeSource.provider}` : ""}
         </div>
       ) : null}
     </div>

@@ -227,6 +227,13 @@ export default function MovieDetail({
   ];
 
   const hasStreams = Array.isArray(servers) && servers.length > 0;
+  const legalServers = hasStreams
+    ? servers.filter((server) => Boolean(server?.isLegal))
+    : [];
+  const hasLegalStreams = legalServers.length > 0;
+  const trailerWatchUrl = trailer?.key
+    ? `https://www.youtube.com/watch?v=${trailer.key}`
+    : "";
 
   return (
     <div className="animate-in fade-in space-y-6 duration-500">
@@ -351,7 +358,7 @@ export default function MovieDetail({
 
         <div className="space-y-6">
           {trailer ? (
-            <section className="card-neon p-5 sm:p-6">
+            <section id="trailer-section" className="card-neon p-5 sm:p-6">
               <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
                 {text.trailer || "Trailer"}
               </h3>
@@ -630,9 +637,9 @@ export default function MovieDetail({
               {text.watchNow || "Watch now"}
             </h3>
 
-            {hasStreams ? (
+            {hasLegalStreams ? (
               <Player
-                servers={servers}
+                servers={legalServers}
                 activeServer={activeServer}
                 setActiveServer={setActiveServer}
                 poster={backdropUrl}
@@ -641,8 +648,8 @@ export default function MovieDetail({
             ) : officialWatchLink ? (
               <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
                 <p className="text-sm">
-                  {text.noDirectStream ||
-                    "No direct in-app stream is available for this title. Use the official watch page instead."}
+                  {text.noLegalStream ||
+                    "No legal in-app stream is available for this title. Use official providers."}
                 </p>
 
                 <a
@@ -651,14 +658,30 @@ export default function MovieDetail({
                   rel="noreferrer"
                   className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-fuchsia/40 px-4 py-2 text-sm text-cyber-fuchsia transition hover:bg-cyber-fuchsia/10"
                 >
-                  {text.officialWatch || "Open official watch options"}
+                  {text.watchLegally || "Watch legally"}
+                </a>
+              </div>
+            ) : trailerWatchUrl ? (
+              <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
+                <p className="text-sm">
+                  {text.noLegalStream ||
+                    "No legal in-app stream is available for this title. Watch the trailer instead."}
+                </p>
+
+                <a
+                  href={trailerWatchUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-cyan/35 px-4 py-2 text-sm text-cyber-cyan transition hover:bg-cyber-cyan/10"
+                >
+                  {text.watchTrailerFallback || "Watch trailer"}
                 </a>
               </div>
             ) : (
               <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4">
                 <p className="text-sm text-cyber-cyan/70">
-                  {text.noDirectStream ||
-                    "No direct in-app stream is available for this title."}
+                  {text.noLegalStream ||
+                    "No legal stream is available for this title right now."}
                 </p>
               </div>
             )}

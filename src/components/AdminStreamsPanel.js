@@ -12,11 +12,13 @@ const emptyForm = {
   sourceName: "",
   sourceProvider: "custom",
   sourcePlaybackId: "",
+  sourceUrl: "",
   sourcePath: "",
   sourceType: "hls",
   sourceQuality: "auto",
   sourceLanguage: "VO",
   isPremium: false,
+  isLegal: false,
 };
 
 const toFormState = (stream) => {
@@ -38,11 +40,13 @@ const toFormState = (stream) => {
     sourceName: source?.name || "",
     sourceProvider: source?.provider || "custom",
     sourcePlaybackId: source?.playbackId || "",
+    sourceUrl: source?.url || "",
     sourcePath: source?.path || "",
     sourceType: source?.type || "hls",
     sourceQuality: source?.quality || "auto",
     sourceLanguage: source?.language || "VO",
     isPremium: Boolean(source?.isPremium),
+    isLegal: Boolean(source?.isLegal),
   };
 };
 
@@ -58,14 +62,18 @@ const buildPayload = (form) => ({
       name: String(form.sourceName || "").trim(),
       provider: String(form.sourceProvider || "custom").trim(),
       playbackId: String(form.sourcePlaybackId || "").trim(),
+      url: String(form.sourceUrl || "").trim(),
       path: String(form.sourcePath || "").trim(),
       type: form.sourceType || "hls",
       quality: String(form.sourceQuality || "").trim(),
       language: String(form.sourceLanguage || "").trim(),
       isPremium: Boolean(form.isPremium),
+      isLegal: Boolean(form.isLegal),
     },
   ],
 });
+
+const externalEmbedProviders = new Set(["codespecters", "embed"]);
 
 export default function AdminStreamsPanel({ user, onBack }) {
   const [filters, setFilters] = useState({ mediaType: "", tmdbId: "" });
@@ -127,8 +135,17 @@ export default function AdminStreamsPanel({ user, onBack }) {
     try {
       const payload = buildPayload(form);
 
-      if (!payload.tmdbId || !payload.title || !payload.sources[0].playbackId) {
-        throw new Error("tmdbId, title and playbackId are required.");
+      if (!payload.tmdbId || !payload.title) {
+        throw new Error("tmdbId and title are required.");
+      }
+
+      const provider = String(payload.sources[0].provider || "").toLowerCase();
+      if (
+        !externalEmbedProviders.has(provider) &&
+        !payload.sources[0].playbackId &&
+        !payload.sources[0].url
+      ) {
+        throw new Error("A playbackId or url is required for this provider.");
       }
 
       if (payload.mediaType === "tv" && (!form.seasonNumber || !form.episodeNumber)) {
@@ -309,17 +326,39 @@ export default function AdminStreamsPanel({ user, onBack }) {
               className="input-cyber w-full"
             />
 
+            <input
+              type="text"
+              value={form.sourceUrl}
+              onChange={(e) => setForm((prev) => ({ ...prev, sourceUrl: e.target.value }))}
+              placeholder="Direct URL (optional)"
+              className="input-cyber w-full"
+            />
+
             <div className="grid gap-3 sm:grid-cols-2">
               <select
                 value={form.sourceProvider}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, sourceProvider: e.target.value }))
-                }
+                onChange={(e) => {
+                  const sourceProvider = e.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    sourceProvider,
+                    sourceType: externalEmbedProviders.has(sourceProvider)
+                      ? "embed"
+                      : prev.sourceType,
+                  }));
+                }}
                 className="input-cyber w-full"
               >
                 <option value="custom">custom</option>
                 <option value="cloudflare">cloudflare</option>
                 <option value="mux">mux</option>
+                <option value="youtube">youtube</option>
+                <option value="vimeo">vimeo</option>
+                <option value="dailymotion">dailymotion</option>
+                <option value="codespecters">codespecters</option>
+                <option value="embed">embed</option>
+                <option value="archive">archive</option>
+                <option value="direct">direct</option>
               </select>
 
               <input
@@ -339,6 +378,7 @@ export default function AdminStreamsPanel({ user, onBack }) {
               >
                 <option value="hls">hls</option>
                 <option value="mp4">mp4</option>
+                <option value="embed">embed</option>
               </select>
 
               <input
@@ -358,14 +398,29 @@ export default function AdminStreamsPanel({ user, onBack }) {
               />
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-cyber-cyan/80">
-              <input
-                type="checkbox"
-                checked={form.isPremium}
-                onChange={(e) => setForm((prev) => ({ ...prev, isPremium: e.target.checked }))}
-              />
-              Premium only
-            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex items-center gap-2 text-sm text-cyber-cyan/80">
+                <input
+                  type="checkbox"
+                  checked={form.isPremium}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, isPremium: e.target.checked }))
+                  }
+                />
+                Premium only
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-cyber-cyan/80">
+                <input
+                  type="checkbox"
+                  checked={form.isLegal}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, isLegal: e.target.checked }))
+                  }
+                />
+                Legal source
+              </label>
+            </div>
 
             {error ? <p className="text-sm text-rose-200">{error}</p> : null}
             {feedback ? <p className="text-sm text-emerald-200">{feedback}</p> : null}
@@ -450,7 +505,13 @@ export default function AdminStreamsPanel({ user, onBack }) {
                           Playback ID: {source.playbackId || "No playbackId"}
                         </p>
                         <p className="text-sm text-cyber-cyan/70 break-all">
+                          URL: {source.url || "No direct url"}
+                        </p>
+                        <p className="text-sm text-cyber-cyan/70 break-all">
                           Path: {source.path || "No path"}
+                        </p>
+                        <p className="text-sm text-cyber-cyan/70 break-all">
+                          Legal: {source.isLegal ? "yes" : "no"}
                         </p>
                       </div>
 

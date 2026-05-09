@@ -106,6 +106,14 @@ export const streamsAPI = {
       )}&source=${encodeURIComponent(source)}`
     ),
 
+  legal: ({ mediaType = "", provider = "" } = {}) => {
+    const params = new URLSearchParams();
+    if (mediaType) params.set("mediaType", mediaType);
+    if (provider) params.set("provider", provider);
+    const query = params.toString();
+    return request(`/streams/legal${query ? `?${query}` : ""}`);
+  },
+
   list: ({ mediaType = "", tmdbId = "" } = {}) => {
     const params = new URLSearchParams();
     if (mediaType) params.set("mediaType", mediaType);
