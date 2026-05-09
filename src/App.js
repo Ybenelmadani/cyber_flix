@@ -1378,7 +1378,7 @@ export default function App() {
               onSecondaryAction={() => scrollToSection("genres-section")}
             />
 
-            <AdBanner hidden={hasPremium} label={t.ads.label} />
+            {/* <AdBanner hidden={hasPremium} label={t.ads.label} /> */}
 
             <section className="mb-8 rounded-[2rem] border border-cyber-cyan/15 bg-cyber-darker/45 p-5 sm:p-6">
               <div className="mb-6 flex flex-col gap-2">
@@ -1481,6 +1481,7 @@ export default function App() {
               </div>
             </section>
 
+            {/* Section 3 cartes features — masquee car non essentielle
             <section className="mb-8 grid gap-4 md:grid-cols-3">
               {uiCopy.features.map((feature) => (
                 <article
@@ -1496,6 +1497,7 @@ export default function App() {
                 </article>
               ))}
             </section>
+            */}
 
             <section id="catalog-section" className="mb-8">
               <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -1575,7 +1577,7 @@ export default function App() {
           </>
         ) : (
           <>
-            {!hasPremium ? <AdBanner label={t.ads.label} /> : null}
+            {/* {!hasPremium ? <AdBanner label={t.ads.label} /> : null} */}
 
             {error ? (
               <div className="mb-4 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm">

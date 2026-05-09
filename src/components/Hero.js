@@ -97,6 +97,7 @@ export default function Hero({
             </div>
           </div>
 
+          {/* Bloc "Landing focus" masque car non essentiel
           <div className="rounded-[1.75rem] border border-cyber-cyan/15 bg-cyber-dark/70 p-5">
             <p className="text-xs uppercase tracking-[0.32em] text-cyber-cyan/60">
               Landing focus
@@ -110,6 +111,7 @@ export default function Hero({
               </div>
             </div>
           </div>
+          */}
         </div>
       </div>
     </section>
