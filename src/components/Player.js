@@ -228,23 +228,31 @@ export default function Player({
         })}
       </div>
 
-      <div className="aspect-video bg-black">
+      <div
+        className="relative aspect-video bg-black"
+        style={{ touchAction: "manipulation" }}
+      >
         {resolvedSourceType === "embed" ? (
           <iframe
+            key={activeSource?.url}
             title={title || activeSource?.name || "Embedded stream"}
             src={activeSource?.url}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            className="absolute inset-0 h-full w-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share; payment"
             allowFullScreen
             referrerPolicy="no-referrer"
+            scrolling="no"
+            style={{ touchAction: "manipulation" }}
           />
         ) : (
           <video
             ref={videoRef}
             controls
+            playsInline
             poster={poster}
-            className="h-full w-full"
+            className="absolute inset-0 h-full w-full"
             preload="metadata"
+            style={{ touchAction: "manipulation" }}
           >
             Your browser does not support video playback.
           </video>
