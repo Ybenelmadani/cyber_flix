@@ -1,7 +1,84 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Globe2, House, LogIn, LogOut, Menu, Search, Sparkles, X } from "lucide-react";
 import NavDropdown from "./NavDropdown";
 import CyberflixLogo from "./CyberflixLogo";
+
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w92";
+const FALLBACK_POSTER =
+  "data:image/svg+xml;charset=UTF-8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="46" height="69" viewBox="0 0 46 69"><rect width="46" height="69" fill="#0f172a"/><text x="50%" y="50%" fill="#22d3ee" font-family="Arial" font-size="9" text-anchor="middle" dominant-baseline="middle">No img</text></svg>'
+  );
+
+function SearchDropdown({ results, isLoading, onSelect, mediaType }) {
+  if (isLoading) {
+    return (
+      <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-cyber-cyan/20 bg-cyber-dark/95 p-3 shadow-[0_20px_60px_rgba(2,6,23,0.8)] backdrop-blur-xl">
+        <div className="flex items-center justify-center gap-2 py-4 text-sm text-cyber-cyan/60">
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-cyber-cyan/30 border-t-cyber-cyan" />
+          Searching...
+        </div>
+      </div>
+    );
+  }
+
+  if (!results.length) {
+    return (
+      <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-cyber-cyan/20 bg-cyber-dark/95 p-4 shadow-[0_20px_60px_rgba(2,6,23,0.8)] backdrop-blur-xl">
+        <p className="text-center text-sm text-cyber-cyan/50">No results found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[480px] overflow-y-auto overflow-x-hidden rounded-2xl border border-cyber-cyan/20 bg-cyber-dark/95 py-2 shadow-[0_20px_60px_rgba(2,6,23,0.8)] backdrop-blur-xl">
+      {results.map((item) => {
+        const title = item.title || item.name || "Unknown";
+        const year = (item.release_date || item.first_air_date || "").slice(0, 4);
+        const poster = item.poster_path
+          ? `${TMDB_IMAGE_BASE}${item.poster_path}`
+          : FALLBACK_POSTER;
+        const type = item.title ? "movie" : "tv";
+
+        return (
+          <button
+            key={`${type}-${item.id}`}
+            type="button"
+            onClick={() => onSelect(item, type)}
+            className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-cyber-cyan/10"
+          >
+            <img
+              src={poster}
+              alt={title}
+              className="h-14 w-10 shrink-0 rounded-lg object-cover shadow-md"
+              onError={(e) => { e.currentTarget.src = FALLBACK_POSTER; }}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-cyan-50">{title}</p>
+              <div className="mt-0.5 flex items-center gap-2">
+                {year ? (
+                  <span className="text-xs text-cyber-cyan/60">{year}</span>
+                ) : null}
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                  type === "tv"
+                    ? "bg-cyber-fuchsia/15 text-cyber-fuchsia"
+                    : "bg-cyber-cyan/15 text-cyber-cyan"
+                }`}>
+                  {type === "tv" ? "Series" : "Movie"}
+                </span>
+              </div>
+              {item.vote_average ? (
+                <p className="mt-0.5 text-xs text-cyber-cyan/45">
+                  ⭐ {Number(item.vote_average).toFixed(1)}
+                </p>
+              ) : null}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Header({
   searchQuery,
@@ -19,19 +96,108 @@ export default function Header({
   onOpenAdmin = () => {},
   onLogout = () => {},
   onUpgrade = () => {},
+  onSelectSearchResult = () => {},
+  apiBase = "",
+  apiLanguage = "en-US",
+  mediaType = "movie",
 }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+
+  // Live search state
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const searchRef = useRef(null);
+  const searchDebounceRef = useRef(null);
+
   const menuRef = useRef(null);
   const desktopButtonClass =
     "inline-flex h-9 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-cyber-cyan/25 bg-cyber-darker/70 px-3 text-sm font-semibold text-cyber-cyan transition hover:border-cyber-fuchsia hover:text-cyber-fuchsia";
   const mobileButtonClass =
     "inline-flex w-full items-center justify-start gap-2 rounded-xl border border-cyber-cyan/20 bg-cyber-darker/70 px-3 py-2.5 text-sm font-semibold text-cyber-cyan transition hover:border-cyber-fuchsia hover:text-cyber-fuchsia";
 
+  // Resolve API base
+  const resolvedBase = apiBase || (
+    process.env.REACT_APP_API_BASE
+      ? process.env.REACT_APP_API_BASE.replace(/\/+$/, "").replace(/\/api$/, "") + "/api"
+      : "http://localhost:3001/api"
+  );
+
+  const fetchSearchResults = useCallback(
+    async (query) => {
+      if (!query || query.trim().length < 2) {
+        setSearchResults([]);
+        setShowSearchDropdown(false);
+        return;
+      }
+
+      setSearchLoading(true);
+      setShowSearchDropdown(true);
+
+      try {
+        const lang = encodeURIComponent(apiLanguage);
+        const q = encodeURIComponent(query.trim());
+
+        const [movieRes, tvRes] = await Promise.allSettled([
+          fetch(`${resolvedBase}/tmdb/search?query=${q}&page=1&language=${lang}`).then((r) => r.json()),
+          fetch(`${resolvedBase}/tmdb/tv/search?query=${q}&page=1&language=${lang}`).then((r) => r.json()),
+        ]);
+
+        const movies = movieRes.status === "fulfilled" ? (movieRes.value.results || []) : [];
+        const tvShows = tvRes.status === "fulfilled" ? (tvRes.value.results || []) : [];
+
+        // Merge and sort by popularity, limit to 8 results
+        const merged = [...movies.slice(0, 5), ...tvShows.slice(0, 5)]
+          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+          .slice(0, 8);
+
+        setSearchResults(merged);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    [resolvedBase, apiLanguage]
+  );
+
+  const handleSearchInput = useCallback(
+    (value) => {
+      setSearchQuery(value);
+
+      clearTimeout(searchDebounceRef.current);
+
+      if (!value.trim()) {
+        setSearchResults([]);
+        setShowSearchDropdown(false);
+        return;
+      }
+
+      searchDebounceRef.current = setTimeout(() => {
+        fetchSearchResults(value);
+      }, 300);
+    },
+    [fetchSearchResults, setSearchQuery]
+  );
+
+  const handleResultSelect = useCallback(
+    (item, type) => {
+      setShowSearchDropdown(false);
+      setSearchQuery("");
+      setSearchResults([]);
+      onSelectSearchResult(item, type);
+    },
+    [onSelectSearchResult, setSearchQuery]
+  );
+
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setShowDropdown(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchDropdown(false);
       }
     };
 
@@ -39,6 +205,7 @@ export default function Header({
       if (event.key === "Escape") {
         setShowDropdown(false);
         setShowMobileNav(false);
+        setShowSearchDropdown(false);
       }
     };
 
@@ -51,6 +218,10 @@ export default function Header({
     };
   }, []);
 
+  useEffect(() => {
+    return () => clearTimeout(searchDebounceRef.current);
+  }, []);
+
   const handleGenreSelect = (genre) => {
     if (onGenreSelect) {
       onGenreSelect(genre);
@@ -58,6 +229,48 @@ export default function Header({
     setShowDropdown(false);
     setShowMobileNav(false);
   };
+
+  const SearchInput = ({ className, inputClassName }) => (
+    <div className={`relative ${className || ""}`} ref={searchRef}>
+      <label className="relative block">
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => handleSearchInput(e.target.value)}
+          onFocus={() => {
+            if (searchResults.length > 0) setShowSearchDropdown(true);
+          }}
+          placeholder={searchPlaceholder}
+          className={inputClassName}
+          autoComplete="off"
+        />
+        {searchQuery ? (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setSearchResults([]);
+              setShowSearchDropdown(false);
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-cyan/40 hover:text-cyber-cyan/70"
+            aria-label="Clear search"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : null}
+      </label>
+
+      {showSearchDropdown && searchQuery.trim().length >= 2 ? (
+        <SearchDropdown
+          results={searchResults}
+          isLoading={searchLoading}
+          onSelect={handleResultSelect}
+          mediaType={mediaType}
+        />
+      ) : null}
+    </div>
+  );
 
   return (
     <header className="sticky top-0 z-30 border-b border-cyber-cyan/15 bg-cyber-dark/88 px-2 py-1.5 backdrop-blur-xl sm:px-3">
@@ -81,29 +294,21 @@ export default function Header({
           <CyberflixLogo compact />
         </button>
 
-        <label className="relative block flex-1 lg:hidden">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={searchPlaceholder}
-            className="h-10 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-4 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
+        {/* Mobile search */}
+        <div className="flex-1 lg:hidden">
+          <SearchInput
+            inputClassName="h-10 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-8 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
           />
-        </label>
+        </div>
 
+        {/* Desktop nav bar */}
         <div className="hidden min-w-max flex-1 rounded-[1.6rem] border border-cyber-cyan/15 bg-cyber-darker/55 p-1.5 shadow-[0_18px_60px_rgba(8,18,38,0.28)] lg:block">
           <div className="flex items-center gap-2">
-            <label className="relative block w-[30rem]">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="h-9 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-4 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
-              />
-            </label>
+            {/* Desktop search with dropdown */}
+            <SearchInput
+              className="w-[30rem]"
+              inputClassName="h-9 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-8 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
+            />
 
             <div className="ml-auto flex items-center gap-2">
               <div className="relative shrink-0" ref={menuRef}>

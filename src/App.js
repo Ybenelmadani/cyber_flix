@@ -1358,6 +1358,11 @@ export default function App() {
         onOpenAdmin={() => openAdminPanel(true)}
         onLogout={handleLogout}
         onUpgrade={handleUpgrade}
+        apiLanguage={apiLanguage}
+        mediaType={mediaType}
+        onSelectSearchResult={(item, type) =>
+          openDetailById({ media: type, id: item.id, seedItem: item, pushState: true })
+        }
       />
 
       <main className="mx-auto flex w-full max-w-7xl flex-col px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
