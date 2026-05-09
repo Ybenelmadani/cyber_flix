@@ -230,47 +230,7 @@ export default function Header({
     setShowMobileNav(false);
   };
 
-  const SearchInput = ({ className, inputClassName }) => (
-    <div className={`relative ${className || ""}`} ref={searchRef}>
-      <label className="relative block">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => handleSearchInput(e.target.value)}
-          onFocus={() => {
-            if (searchResults.length > 0) setShowSearchDropdown(true);
-          }}
-          placeholder={searchPlaceholder}
-          className={inputClassName}
-          autoComplete="off"
-        />
-        {searchQuery ? (
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery("");
-              setSearchResults([]);
-              setShowSearchDropdown(false);
-            }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-cyan/40 hover:text-cyber-cyan/70"
-            aria-label="Clear search"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        ) : null}
-      </label>
-
-      {showSearchDropdown && searchQuery.trim().length >= 2 ? (
-        <SearchDropdown
-          results={searchResults}
-          isLoading={searchLoading}
-          onSelect={handleResultSelect}
-          mediaType={mediaType}
-        />
-      ) : null}
-    </div>
-  );
+  const SearchInput = null; // removed — see inline JSX below
 
   return (
     <header className="sticky top-0 z-30 border-b border-cyber-cyan/15 bg-cyber-dark/88 px-2 py-1.5 backdrop-blur-xl sm:px-3">
@@ -294,21 +254,76 @@ export default function Header({
           <CyberflixLogo compact />
         </button>
 
-        {/* Mobile search */}
-        <div className="flex-1 lg:hidden">
-          <SearchInput
-            inputClassName="h-10 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-8 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
-          />
+        {/* Mobile search — inline to avoid remount bug */}
+        <div className="relative flex-1 lg:hidden" ref={searchRef}>
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              onFocus={() => { if (searchResults.length > 0) setShowSearchDropdown(true); }}
+              placeholder={searchPlaceholder}
+              className="h-10 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-8 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
+              autoComplete="off"
+            />
+            {searchQuery ? (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(""); setSearchResults([]); setShowSearchDropdown(false); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-cyan/40 hover:text-cyber-cyan/70"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+          </label>
+          {showSearchDropdown && searchQuery.trim().length >= 2 ? (
+            <SearchDropdown
+              results={searchResults}
+              isLoading={searchLoading}
+              onSelect={handleResultSelect}
+              mediaType={mediaType}
+            />
+          ) : null}
         </div>
 
         {/* Desktop nav bar */}
         <div className="hidden min-w-max flex-1 rounded-[1.6rem] border border-cyber-cyan/15 bg-cyber-darker/55 p-1.5 shadow-[0_18px_60px_rgba(8,18,38,0.28)] lg:block">
           <div className="flex items-center gap-2">
-            {/* Desktop search with dropdown */}
-            <SearchInput
-              className="w-[30rem]"
-              inputClassName="h-9 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-8 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
-            />
+            {/* Desktop search — inline to avoid remount bug */}
+            <div className="relative w-[30rem]" ref={searchRef}>
+              <label className="relative block">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchInput(e.target.value)}
+                  onFocus={() => { if (searchResults.length > 0) setShowSearchDropdown(true); }}
+                  placeholder={searchPlaceholder}
+                  className="h-9 w-full rounded-xl border border-cyber-cyan/20 bg-cyber-darker/80 pl-11 pr-8 text-sm text-cyber-cyan placeholder-cyber-cyan/45 outline-none transition focus:border-cyber-fuchsia focus:ring-2 focus:ring-cyber-fuchsia/15"
+                  autoComplete="off"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => { setSearchQuery(""); setSearchResults([]); setShowSearchDropdown(false); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-cyan/40 hover:text-cyber-cyan/70"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+              </label>
+              {showSearchDropdown && searchQuery.trim().length >= 2 ? (
+                <SearchDropdown
+                  results={searchResults}
+                  isLoading={searchLoading}
+                  onSelect={handleResultSelect}
+                  mediaType={mediaType}
+                />
+              ) : null}
+            </div>
 
             <div className="ml-auto flex items-center gap-2">
               <div className="relative shrink-0" ref={menuRef}>
