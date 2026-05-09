@@ -7,7 +7,7 @@ import EpisodeDetail from "./components/EpisodeDetail";
 import AdminStreamsPanel from "./components/AdminStreamsPanel";
 import Genres from "./components/Genres";
 import Footer from "./components/Footer";
-import AdBanner from "./components/AdBanner";
+// import AdBanner from "./components/AdBanner"; // masque temporairement
 import AuthPanel from "./components/AuthPanel";
 import {
   authAPI,
@@ -473,6 +473,7 @@ export default function App() {
   const currentCategories =
     mediaType === "movie" ? t.categories.movie : t.categories.tv;
   const isRTL = language === "ar";
+  // eslint-disable-next-line no-unused-vars
   const hasPremium = authUser?.plan === "premium";
   const isAdminRoute = isAdminPath(routePath);
 
