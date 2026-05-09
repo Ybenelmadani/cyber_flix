@@ -155,6 +155,10 @@ const TRANSLATIONS = {
       rent: "Rent",
       buy: "Buy",
       free: "Free",
+      watchLegally: "Watch legally",
+      noLegalStream:
+        "No legal in-app stream is available for this title. Use official providers or trailer.",
+      watchTrailerFallback: "Watch trailer",
       reviewsTitle: "Community reviews",
       reviewsSubtitle: "Share your opinion and rating with other viewers.",
       reviewsAverage: "Average",
@@ -280,6 +284,10 @@ const TRANSLATIONS = {
       rent: "Location",
       buy: "Achat",
       free: "Gratuit",
+      watchLegally: "Regarder legalement",
+      noLegalStream:
+        "Aucun flux legal integre n'est disponible pour ce titre. Utilise les plateformes officielles ou le trailer.",
+      watchTrailerFallback: "Voir le trailer",
       reviewsTitle: "Avis de la communaute",
       reviewsSubtitle:
         "Partage ton avis et ta note avec les autres spectateurs.",
@@ -442,6 +450,7 @@ export default function App() {
   const [selectedDetails, setSelectedDetails] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [activeCategory, setActiveCategory] = useState("popular");
+  const [recentOnly, setRecentOnly] = useState(false);
   const [favorites, setFavorites] = useState([]);
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
@@ -484,6 +493,9 @@ export default function App() {
               "Bascule entre films, series et categories sans perdre une mise en page propre sur mobile.",
             modeLabel: "Type de contenu",
             categoryLabel: "Categories",
+            recentOnlyLabel: "Recents uniquement",
+            recentOnlyHint:
+              "Affiche uniquement les films/séries les plus récents.",
             browseTitle: "Catalogue en direct",
             browseSubtitle:
               "Une landing plus riche, mais toujours lisible sur petit ecran.",
@@ -514,6 +526,8 @@ export default function App() {
               "Switch between movies, series and categories without losing a clean mobile layout.",
             modeLabel: "Content type",
             categoryLabel: "Categories",
+            recentOnlyLabel: "Recent only",
+            recentOnlyHint: "Show only the most recent movies/series.",
             browseTitle: "Live catalog",
             browseSubtitle:
               "A stronger landing page that still feels clear on small screens.",
@@ -559,6 +573,8 @@ export default function App() {
       quality: source.quality || null,
       language: source.language || null,
       isPremium: Boolean(source.isPremium),
+      isLegal: Boolean(source.isLegal),
+      provider: source.provider || "custom",
       url: source.url || "",
     }));
   }, []);
@@ -599,6 +615,8 @@ export default function App() {
         quality: playback.quality || null,
         language: playback.language || null,
         isPremium: Boolean(playback.isPremium),
+        isLegal: Boolean(playback.isLegal),
+        provider: playback.provider || "custom",
       };
     },
     []
@@ -780,6 +798,40 @@ export default function App() {
         setSelectedDetails(showDetails);
         setSelectedEpisodeDetails(episodeDetails);
         setSeasonDetails(season);
+
+        // Load episode stream sources
+        try {
+          const streamResponse = await streamsAPI.getEpisodeStream(
+            showId,
+            seasonNumber,
+            episodeNumber
+          );
+          const episodeServers = normalizeServers(
+            streamResponse?.stream?.sources || []
+          );
+          setServers(episodeServers);
+
+          const firstLegalServer = episodeServers.find(
+            (server) => Boolean(server.isLegal)
+          );
+
+          if (firstLegalServer) {
+            const playbackServer = await resolvePlaybackServer({
+              media: "tv",
+              tmdbId: showId,
+              seasonNumber,
+              episodeNumber,
+              sourceIndex: Number(firstLegalServer.id || 0),
+            });
+            setActiveServer(playbackServer);
+          } else {
+            setActiveServer(null);
+          }
+        } catch {
+          setServers([]);
+          setActiveServer(null);
+        }
+
         trackEvent("open_episode_detail", {
           media_type: "tv",
           item_id: showId,
@@ -792,7 +844,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, t.errors.details]
+    [apiLanguage, normalizeServers, resolvePlaybackServer, t.errors.details]
   );
 
   const handleEpisodeSelect = useCallback(
@@ -856,11 +908,15 @@ export default function App() {
             setServers(movieServers);
             setSelectedEpisode(null);
 
-            if (movieServers.length > 0) {
+            const firstLegalServer = movieServers.find(
+              (server) => Boolean(server.isLegal)
+            );
+
+            if (firstLegalServer) {
               const playbackServer = await resolvePlaybackServer({
                 media: "movie",
                 tmdbId: id,
-                sourceIndex: Number(movieServers[0].id || 0),
+                sourceIndex: Number(firstLegalServer.id || 0),
               });
               setActiveServer(playbackServer);
             } else {
@@ -1066,10 +1122,11 @@ export default function App() {
     if (routePath !== "/") return;
 
     setSelectedGenre(null);
-    setActiveCategory("popular");
+    const nextCategory = recentOnly ? "release" : "popular";
+    setActiveCategory(nextCategory);
     loadGenres();
-    loadItems({ category: "popular", genreId: null, media: mediaType });
-  }, [language, loadGenres, loadItems, mediaType, routePath]);
+    loadItems({ category: nextCategory, genreId: null, media: mediaType });
+  }, [language, loadGenres, loadItems, mediaType, recentOnly, routePath]);
 
   useEffect(() => {
     if (routePath !== "/") return;
@@ -1092,7 +1149,7 @@ export default function App() {
       previousSearchQueryRef.current = query;
 
       setSelectedGenre(null);
-      setActiveCategory("popular");
+      setActiveCategory(recentOnly ? "release" : "popular");
       setIsLoading(true);
       clearError();
 
@@ -1116,6 +1173,7 @@ export default function App() {
     loadItems,
     mediaType,
     routePath,
+    recentOnly,
     searchQuery,
     selectedGenre?.id,
     t.errors.search,
@@ -1160,6 +1218,9 @@ export default function App() {
   ];
 
   const handleCategoryChange = async (category) => {
+    if (recentOnly && category !== "release") {
+      setRecentOnly(false);
+    }
     setActiveCategory(category);
     setSelectedGenre(null);
     await loadItems({ category, genreId: null, media: mediaType });
@@ -1169,6 +1230,9 @@ export default function App() {
   const handleGenreSelect = async (genre) => {
     if (routePath !== "/") {
       goHome(true);
+    }
+    if (recentOnly) {
+      setRecentOnly(false);
     }
     setSelectedGenre(genre);
     setActiveCategory("popular");
@@ -1365,6 +1429,32 @@ export default function App() {
                       {t.modes.tv}
                     </button>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const next = !recentOnly;
+                      setRecentOnly(next);
+                      setSelectedGenre(null);
+                      const nextCategory = next ? "release" : "popular";
+                      setActiveCategory(nextCategory);
+                      await loadItems({
+                        category: nextCategory,
+                        genreId: null,
+                        media: mediaType,
+                      });
+                    }}
+                    className={`mt-3 w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                      recentOnly
+                        ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
+                        : "border-cyber-cyan/30 text-cyber-cyan hover:border-cyber-cyan"
+                    }`}
+                  >
+                    {uiCopy.recentOnlyLabel}
+                  </button>
+                  <p className="mt-2 text-xs text-cyber-cyan/60">
+                    {uiCopy.recentOnlyHint}
+                  </p>
                 </div>
 
                 <div className="rounded-[1.5rem] border border-cyber-cyan/10 bg-cyber-dark/40 p-4">
@@ -1499,6 +1589,9 @@ export default function App() {
                 episode={selectedEpisodeDetails}
                 isLoading={isDetailsLoading}
                 labels={t.detail}
+                servers={servers}
+                activeServer={activeServer}
+                setActiveServer={handleServerChange}
                 onBack={() =>
                   openDetailById({
                     media: "tv",

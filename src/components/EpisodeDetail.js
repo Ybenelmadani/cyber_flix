@@ -1,4 +1,5 @@
 import React from "react";
+import Player from "./Player";
 
 const FALLBACK_EPISODE_IMAGE =
   "data:image/svg+xml;charset=UTF-8," +
@@ -84,6 +85,9 @@ export default function EpisodeDetail({
   isLoading,
   onBack,
   labels,
+  servers = [],
+  activeServer,
+  setActiveServer,
 }) {
   if (!show || !episode) return null;
 
@@ -186,6 +190,41 @@ export default function EpisodeDetail({
         </aside>
 
         <div className="space-y-6">
+          {/* Watch Now — legal stream player */}
+          {(() => {
+            const legalServers = servers.filter((s) => Boolean(s.isLegal));
+            const hasLegalStreams = legalServers.length > 0;
+            const posterUrl = stillUrl;
+            const epTitle =
+              episode.name ||
+              `${text.episode || "Episode"} ${episode.episode_number}`;
+
+            return (
+              <section className="card-neon p-5 sm:p-6">
+                <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
+                  {text.watchNow || "Watch now"}
+                </h3>
+
+                {hasLegalStreams ? (
+                  <Player
+                    servers={legalServers}
+                    activeServer={activeServer}
+                    setActiveServer={setActiveServer}
+                    poster={posterUrl}
+                    title={epTitle}
+                  />
+                ) : (
+                  <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4">
+                    <p className="text-sm text-cyber-cyan/70">
+                      {text.noLegalStream ||
+                        "No legal stream available for this episode."}
+                    </p>
+                  </div>
+                )}
+              </section>
+            );
+          })()}
+
           {trailer ? (
             <section className="card-neon p-5 sm:p-6">
               <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
