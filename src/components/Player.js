@@ -180,7 +180,7 @@ export default function Player({
 
   if (!servers.length) {
     return (
-      <div className="overflow-hidden rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker">
+      <div className="rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker">
         <div className="aspect-video flex items-center justify-center bg-cyber-dark text-cyber-cyan/70">
           No video source available
         </div>
@@ -189,7 +189,11 @@ export default function Player({
   }
 
   return (
-    <div className="overflow-hidden rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker">
+    <div
+      className="rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker"
+      style={{ overflow: "clip" /* clips visually without blocking touch */ }}
+    >
+      {/* Server selector tabs */}
       <div className="flex overflow-x-auto border-b border-cyber-cyan/20 bg-cyber-darker/80 scrollbar-hide">
         {servers.map((server, index) => {
           const serverName =
@@ -228,21 +232,34 @@ export default function Player({
         })}
       </div>
 
+      {/* Video area */}
       <div
-        className="relative aspect-video bg-black"
-        style={{ touchAction: "manipulation" }}
+        className="relative bg-black"
+        style={{
+          aspectRatio: "16 / 9",
+          touchAction: "manipulation",
+          WebkitOverflowScrolling: "touch",
+        }}
       >
         {resolvedSourceType === "embed" ? (
           <iframe
             key={activeSource?.url}
             title={title || activeSource?.name || "Embedded stream"}
             src={activeSource?.url}
-            className="absolute inset-0 h-full w-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share; payment"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              border: "none",
+              touchAction: "manipulation",
+              pointerEvents: "all",
+              zIndex: 1,
+            }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
             allowFullScreen
             referrerPolicy="no-referrer"
             scrolling="no"
-            style={{ touchAction: "manipulation" }}
           />
         ) : (
           <video
@@ -250,9 +267,14 @@ export default function Player({
             controls
             playsInline
             poster={poster}
-            className="absolute inset-0 h-full w-full"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              touchAction: "manipulation",
+            }}
             preload="metadata"
-            style={{ touchAction: "manipulation" }}
           >
             Your browser does not support video playback.
           </video>
