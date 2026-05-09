@@ -230,7 +230,7 @@ export default function Header({
     setShowMobileNav(false);
   };
 
-  const SearchInput = null; // removed — see inline JSX below
+
 
   return (
     <header className="sticky top-0 z-30 border-b border-cyber-cyan/15 bg-cyber-dark/88 px-2 py-1.5 backdrop-blur-xl sm:px-3">
