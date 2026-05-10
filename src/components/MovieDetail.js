@@ -377,6 +377,63 @@ export default function MovieDetail({
             </section>
           ) : null}
 
+          {/* Watch now — juste après le trailer */}
+          <section className="card-neon overflow-hidden p-5 sm:p-6">
+            <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
+              {text.watchNow || "Watch now"}
+            </h3>
+
+            {/* -mx rend le player plein-largeur sur mobile */}
+            <div className="-mx-5 sm:-mx-6">
+              {hasLegalStreams ? (
+                <Player
+                  servers={legalServers}
+                  activeServer={activeServer}
+                  setActiveServer={setActiveServer}
+                  poster={backdropUrl}
+                  title={title}
+                />
+              ) : officialWatchLink ? (
+                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
+                  <p className="text-sm">
+                    {text.noLegalStream ||
+                      "No legal in-app stream is available for this title. Use official providers."}
+                  </p>
+                  <a
+                    href={officialWatchLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-fuchsia/40 px-4 py-2 text-sm text-cyber-fuchsia transition hover:bg-cyber-fuchsia/10"
+                  >
+                    {text.watchLegally || "Watch legally"}
+                  </a>
+                </div>
+              ) : trailerWatchUrl ? (
+                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
+                  <p className="text-sm">
+                    {text.noLegalStream ||
+                      "No legal in-app stream available. Watch the trailer instead."}
+                  </p>
+                  <a
+                    href={trailerWatchUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-cyan/35 px-4 py-2 text-sm text-cyber-cyan transition hover:bg-cyber-cyan/10"
+                  >
+                    {text.watchTrailerFallback || "Watch trailer"}
+                  </a>
+                </div>
+              ) : (
+                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4">
+                  <p className="text-sm text-cyber-cyan/70">
+                    {text.noLegalStream ||
+                      "No legal stream is available for this title right now."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+
           <TitleReviews
             mediaType={mediaType}
             itemId={movie.id}
@@ -632,60 +689,7 @@ export default function MovieDetail({
             </section>
           ) : null}
 
-          <section className="card-neon p-5 sm:p-6">
-            <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
-              {text.watchNow || "Watch now"}
-            </h3>
-
-            {hasLegalStreams ? (
-              <Player
-                servers={legalServers}
-                activeServer={activeServer}
-                setActiveServer={setActiveServer}
-                poster={backdropUrl}
-                title={title}
-              />
-            ) : officialWatchLink ? (
-              <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
-                <p className="text-sm">
-                  {text.noLegalStream ||
-                    "No legal in-app stream is available for this title. Use official providers."}
-                </p>
-
-                <a
-                  href={officialWatchLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-fuchsia/40 px-4 py-2 text-sm text-cyber-fuchsia transition hover:bg-cyber-fuchsia/10"
-                >
-                  {text.watchLegally || "Watch legally"}
-                </a>
-              </div>
-            ) : trailerWatchUrl ? (
-              <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
-                <p className="text-sm">
-                  {text.noLegalStream ||
-                    "No legal in-app stream is available for this title. Watch the trailer instead."}
-                </p>
-
-                <a
-                  href={trailerWatchUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-cyan/35 px-4 py-2 text-sm text-cyber-cyan transition hover:bg-cyber-cyan/10"
-                >
-                  {text.watchTrailerFallback || "Watch trailer"}
-                </a>
-              </div>
-            ) : (
-              <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4">
-                <p className="text-sm text-cyber-cyan/70">
-                  {text.noLegalStream ||
-                    "No legal stream is available for this title right now."}
-                </p>
-              </div>
-            )}
-          </section>
+          {/* Watch now moved above — bloc supprimé ici */}
 
           {similarTitles.length > 0 ? (
             <section className="card-neon p-5 sm:p-6">

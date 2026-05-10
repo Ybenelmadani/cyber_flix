@@ -190,41 +190,6 @@ export default function EpisodeDetail({
         </aside>
 
         <div className="space-y-6">
-          {/* Watch Now — legal stream player */}
-          {(() => {
-            const legalServers = servers.filter((s) => Boolean(s.isLegal));
-            const hasLegalStreams = legalServers.length > 0;
-            const posterUrl = stillUrl;
-            const epTitle =
-              episode.name ||
-              `${text.episode || "Episode"} ${episode.episode_number}`;
-
-            return (
-              <section className="card-neon p-5 sm:p-6">
-                <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
-                  {text.watchNow || "Watch now"}
-                </h3>
-
-                {hasLegalStreams ? (
-                  <Player
-                    servers={legalServers}
-                    activeServer={activeServer}
-                    setActiveServer={setActiveServer}
-                    poster={posterUrl}
-                    title={epTitle}
-                  />
-                ) : (
-                  <div className="rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4">
-                    <p className="text-sm text-cyber-cyan/70">
-                      {text.noLegalStream ||
-                        "No legal stream available for this episode."}
-                    </p>
-                  </div>
-                )}
-              </section>
-            );
-          })()}
-
           {trailer ? (
             <section className="card-neon p-5 sm:p-6">
               <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
@@ -244,6 +209,43 @@ export default function EpisodeDetail({
               </div>
             </section>
           ) : null}
+
+          {/* Watch Now — après le trailer, plein-largeur mobile */}
+          {(() => {
+            const legalServers = servers.filter((s) => Boolean(s.isLegal));
+            const hasLegalStreams = legalServers.length > 0;
+            const posterUrl = stillUrl;
+            const epTitle =
+              episode.name ||
+              `${text.episode || "Episode"} ${episode.episode_number}`;
+
+            return (
+              <section className="card-neon overflow-hidden p-5 sm:p-6">
+                <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
+                  {text.watchNow || "Watch now"}
+                </h3>
+
+                <div className="-mx-5 sm:-mx-6">
+                  {hasLegalStreams ? (
+                    <Player
+                      servers={legalServers}
+                      activeServer={activeServer}
+                      setActiveServer={setActiveServer}
+                      poster={posterUrl}
+                      title={epTitle}
+                    />
+                  ) : (
+                    <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4">
+                      <p className="text-sm text-cyber-cyan/70">
+                        {text.noLegalStream ||
+                          "No legal stream available for this episode."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            );
+          })()}
 
           <section className="card-neon p-5 sm:p-6">
             <h2 className="text-xl font-bold text-cyber-cyan">
