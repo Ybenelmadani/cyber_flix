@@ -394,40 +394,26 @@ export default function MovieDetail({
                   title={title}
                 />
               ) : officialWatchLink ? (
-                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
-                  <p className="text-sm">
-                    {text.noLegalStream ||
-                      "No legal in-app stream is available for this title. Use official providers."}
+                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-6 text-center">
+                  <p className="mb-4 text-sm text-cyber-cyan/80">
+                    {text.noLegalStream || "Ce titre n'est pas disponible en streaming direct. Retrouvez-le sur les plateformes officielles :"}
                   </p>
                   <a
                     href={officialWatchLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-fuchsia/40 px-4 py-2 text-sm text-cyber-fuchsia transition hover:bg-cyber-fuchsia/10"
+                    className="inline-flex min-h-[56px] w-full max-w-xs items-center justify-center rounded-2xl bg-cyber-fuchsia px-8 py-3 text-base font-bold text-white shadow-lg shadow-cyber-fuchsia/20 transition-all hover:scale-105 hover:bg-cyber-fuchsia/90 active:scale-95 sm:w-auto"
                   >
-                    {text.watchLegally || "Watch legally"}
+                    🚀 {text.watchLegally || "Regarder sur les plateformes"}
                   </a>
-                </div>
-              ) : trailerWatchUrl ? (
-                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-cyber-cyan/80">
-                  <p className="text-sm">
-                    {text.noLegalStream ||
-                      "No legal in-app stream available. Watch the trailer instead."}
+                  <p className="mt-4 text-[10px] text-cyber-cyan/40">
+                    * En utilisant ce lien, vous soutenez Cyberflix via nos partenaires affiliés.
                   </p>
-                  <a
-                    href={trailerWatchUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 inline-flex items-center justify-center rounded-xl border border-cyber-cyan/35 px-4 py-2 text-sm text-cyber-cyan transition hover:bg-cyber-cyan/10"
-                  >
-                    {text.watchTrailerFallback || "Watch trailer"}
-                  </a>
                 </div>
               ) : (
-                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4">
+                <div className="mx-5 sm:mx-6 rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-dark/45 p-4 text-center">
                   <p className="text-sm text-cyber-cyan/70">
-                    {text.noLegalStream ||
-                      "No legal stream is available for this title right now."}
+                    {text.noLegalStream || "Aucune offre légale n'est disponible pour ce titre actuellement."}
                   </p>
                 </div>
               )}

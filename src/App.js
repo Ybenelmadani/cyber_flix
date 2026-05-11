@@ -1398,7 +1398,14 @@ export default function App() {
             />
             */}
 
-            {/* <AdBanner hidden={hasPremium} label={t.ads.label} /> */}
+            <AdBanner 
+              hidden={hasPremium} 
+              label={t.ads?.label || "Sponsorisé"} 
+              type="image"
+              imageUrl="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop"
+              linkUrl="#"
+              fallbackText="Espace Publicitaire"
+            />
 
 
             {/* Section 3 cartes features — masquee car non essentielle
