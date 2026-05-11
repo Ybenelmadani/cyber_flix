@@ -231,9 +231,6 @@ export default function MovieDetail({
     ? servers.filter((server) => Boolean(server?.isLegal))
     : [];
   const hasLegalStreams = legalServers.length > 0;
-  const trailerWatchUrl = trailer?.key
-    ? `https://www.youtube.com/watch?v=${trailer.key}`
-    : "";
 
   return (
     <div className="animate-in fade-in space-y-6 duration-500">
