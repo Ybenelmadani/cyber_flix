@@ -14,12 +14,12 @@ import {
   clearAuthToken,
   getAuthToken,
   moviesAPI,
-  // paymentsAPI,
+  paymentsAPI,
   setAuthToken,
-  // streamsAPI,
+  streamsAPI,
   tmdbAPI,
 } from "./services/api";
-// import { trackEvent, trackPageView } from "./services/analytics";
+import { trackEvent, trackPageView } from "./services/analytics";
 
 const LANG_ORDER = ["en", "fr", "ar"];
 const API_LANGUAGE_MAP = {
