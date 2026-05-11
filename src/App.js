@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Header from "./components/Header";
-import Hero from "./components/Hero";
+// import Hero from "./components/Hero";
 import MovieGrid from "./components/MovieGrid";
 import MovieDetail from "./components/MovieDetail";
 import EpisodeDetail from "./components/EpisodeDetail";
@@ -14,12 +13,12 @@ import {
   clearAuthToken,
   getAuthToken,
   moviesAPI,
-  paymentsAPI,
+  // paymentsAPI,
   setAuthToken,
-  streamsAPI,
+  // streamsAPI,
   tmdbAPI,
 } from "./services/api";
-import { trackEvent, trackPageView } from "./services/analytics";
+// import { trackEvent, trackPageView } from "./services/analytics";
 
 const LANG_ORDER = ["en", "fr", "ar"];
 const API_LANGUAGE_MAP = {
@@ -554,11 +553,13 @@ export default function App() {
     [language]
   );
 
+  /*
   const scrollToSection = useCallback((sectionId) => {
     document
       .getElementById(sectionId)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
+  */
 
   const clearError = () => setError("");
 
@@ -1203,6 +1204,7 @@ export default function App() {
     (fav) => fav.favoriteKey === selectedFavoriteKey
   );
 
+  /*
   const heroStats = [
     {
       label: language === "fr" ? "Titres visibles" : "Visible titles",
@@ -1217,6 +1219,7 @@ export default function App() {
       value: String(favorites.length || 0),
     },
   ];
+  */
 
   const handleCategoryChange = async (category) => {
     if (recentOnly && category !== "release") {
@@ -1363,6 +1366,14 @@ export default function App() {
         onSelectSearchResult={(item, type) =>
           openDetailById({ media: type, id: item.id, seedItem: item, pushState: true })
         }
+        activeCategory={activeCategory}
+        onMediaTypeChange={(type) => {
+          setMediaType(type);
+          goHome();
+        }}
+        onCategoryChange={handleCategoryChange}
+        categories={currentCategories}
+        modes={t.modes}
       />
 
       <main className="mx-auto flex w-full max-w-7xl flex-col px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -1370,6 +1381,7 @@ export default function App() {
           <AdminStreamsPanel user={authUser} onBack={() => goHome(true)} />
         ) : !selectedItem ? (
           <>
+            {/* 
             <Hero
               title={mediaType === "movie" ? t.hero.movieTitle : t.hero.tvTitle}
               subtitle={
@@ -1383,109 +1395,10 @@ export default function App() {
               onPrimaryAction={() => scrollToSection("catalog-section")}
               onSecondaryAction={() => scrollToSection("genres-section")}
             />
+            */}
 
             {/* <AdBanner hidden={hasPremium} label={t.ads.label} /> */}
 
-            <section className="mb-8 rounded-[2rem] border border-cyber-cyan/15 bg-cyber-darker/45 p-5 sm:p-6">
-              <div className="mb-6 flex flex-col gap-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyber-cyan/55">
-                  {uiCopy.featureEyebrow}
-                </p>
-                <h2 className="text-2xl font-bold text-cyan-50">
-                  {uiCopy.controlsTitle}
-                </h2>
-                <p className="max-w-3xl text-sm leading-6 text-cyan-50/60">
-                  {uiCopy.controlsSubtitle}
-                </p>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.35fr)_minmax(0,1fr)]">
-                <div className="rounded-[1.5rem] border border-cyber-cyan/10 bg-cyber-dark/40 p-4">
-                  <p className="mb-3 text-sm font-semibold text-cyan-50">
-                    {uiCopy.modeLabel}
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaType("movie");
-                        goHome();
-                      }}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                        mediaType === "movie"
-                          ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
-                          : "border-cyber-cyan/30 text-cyber-cyan"
-                      }`}
-                    >
-                      {t.modes.movie}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaType("tv");
-                        goHome();
-                      }}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                        mediaType === "tv"
-                          ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
-                          : "border-cyber-cyan/30 text-cyber-cyan"
-                      }`}
-                    >
-                      {t.modes.tv}
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const next = !recentOnly;
-                      setRecentOnly(next);
-                      setSelectedGenre(null);
-                      const nextCategory = next ? "release" : "popular";
-                      setActiveCategory(nextCategory);
-                      await loadItems({
-                        category: nextCategory,
-                        genreId: null,
-                        media: mediaType,
-                      });
-                    }}
-                    className={`mt-3 w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                      recentOnly
-                        ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
-                        : "border-cyber-cyan/30 text-cyber-cyan hover:border-cyber-cyan"
-                    }`}
-                  >
-                    {uiCopy.recentOnlyLabel}
-                  </button>
-                  <p className="mt-2 text-xs text-cyber-cyan/60">
-                    {uiCopy.recentOnlyHint}
-                  </p>
-                </div>
-
-                <div className="rounded-[1.5rem] border border-cyber-cyan/10 bg-cyber-dark/40 p-4">
-                  <p className="mb-3 text-sm font-semibold text-cyan-50">
-                    {uiCopy.categoryLabel}
-                  </p>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {Object.entries(currentCategories).map(([key, label]) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => handleCategoryChange(key)}
-                        className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                          activeCategory === key
-                            ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
-                            : "border-cyber-cyan/30 text-cyber-cyan hover:border-cyber-cyan"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
 
             {/* Section 3 cartes features — masquee car non essentielle
             <section className="mb-8 grid gap-4 md:grid-cols-3">

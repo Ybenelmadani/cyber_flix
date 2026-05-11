@@ -194,6 +194,7 @@ export default function Player({
       style={{ overflow: "clip" /* clips visually without blocking touch */ }}
     >
       {/* Server selector tabs */}
+      {/* 
       <div className="flex overflow-x-auto border-b border-cyber-cyan/20 bg-cyber-darker/80 scrollbar-hide">
         {servers.map((server, index) => {
           const serverName =
@@ -231,6 +232,7 @@ export default function Player({
           );
         })}
       </div>
+      */}
 
       {/* Video area */}
       <div
@@ -287,12 +289,14 @@ export default function Player({
         </div>
       ) : null}
 
+      {/* 
       {title ? (
         <div className="border-t border-cyber-cyan/20 px-4 py-3 text-sm text-cyber-cyan/80">
           {title}
           {activeSource?.provider ? ` - ${activeSource.provider}` : ""}
         </div>
       ) : null}
+      */}
     </div>
   );
 }
