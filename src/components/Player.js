@@ -10,7 +10,15 @@ export default function Player({
 }) {
   const videoRef = useRef(null);
   const [playbackError, setPlaybackError] = useState("");
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  // Vérifier si l'utilisateur a déjà débloqué 3 fois aujourd'hui
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    try {
+      const count = parseInt(localStorage.getItem("cyberflix_unlock_count") || "0");
+      return count >= 3; // Débloqué auto après 3 fois
+    } catch {
+      return false;
+    }
+  });
 
   const activeSource = useMemo(() => {
     if (!Array.isArray(servers) || servers.length === 0) return null;
@@ -264,6 +272,12 @@ export default function Player({
               
               <button
                 onClick={() => {
+                  // Incrémenter le compteur
+                  try {
+                    const current = parseInt(localStorage.getItem("cyberflix_unlock_count") || "0");
+                    localStorage.setItem("cyberflix_unlock_count", (current + 1).toString());
+                  } catch (e) {}
+
                   // Ouvrir le lien de pub (Popunder style)
                   window.open("https://www.highperformanceformat.com/a7e69f1222d0e03a598849486a0d33b2c/invoke.js", "_blank");
                   setIsUnlocked(true);
