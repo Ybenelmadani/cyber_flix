@@ -1,3 +1,4 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Header from "./components/Header";
 // import Hero from "./components/Hero";
 import MovieGrid from "./components/MovieGrid";
