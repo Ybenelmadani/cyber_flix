@@ -239,7 +239,6 @@ export default function Player({
         className="relative bg-black"
         style={{
           aspectRatio: "16 / 9",
-          touchAction: "manipulation",
           WebkitOverflowScrolling: "touch",
         }}
       >
@@ -254,8 +253,7 @@ export default function Player({
               width: "100%",
               height: "100%",
               border: "none",
-              touchAction: "manipulation",
-              pointerEvents: "all",
+              pointerEvents: "auto",
               zIndex: 1,
             }}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
@@ -274,7 +272,7 @@ export default function Player({
               inset: 0,
               width: "100%",
               height: "100%",
-              touchAction: "manipulation",
+              pointerEvents: "auto",
             }}
             preload="metadata"
           >
