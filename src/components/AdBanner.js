@@ -38,6 +38,8 @@ export default function AdBanner({
     }
   }, [hidden]);
 
+  return null; // Désactivé temporairement pour attirer les clients
+  
   if (hidden) return null;
 
   return (

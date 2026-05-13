@@ -1,5 +1,32 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
+import { openSponsorDirectLink } from "../config/ads";
+
+const unlockCountKey = "cyberflix_unlock_count";
+const unlockDateKey = "cyberflix_unlock_date";
+
+const todayKey = () => new Date().toISOString().slice(0, 10);
+
+const getTodayUnlockCount = () => {
+  try {
+    if (localStorage.getItem(unlockDateKey) !== todayKey()) {
+      localStorage.setItem(unlockDateKey, todayKey());
+      localStorage.setItem(unlockCountKey, "0");
+      return 0;
+    }
+
+    return parseInt(localStorage.getItem(unlockCountKey) || "0", 10);
+  } catch {
+    return 0;
+  }
+};
+
+const incrementTodayUnlockCount = () => {
+  try {
+    const current = getTodayUnlockCount();
+    localStorage.setItem(unlockCountKey, String(current + 1));
+  } catch {}
+};
 
 export default function Player({
   servers = [],
@@ -10,15 +37,18 @@ export default function Player({
 }) {
   const videoRef = useRef(null);
   const [playbackError, setPlaybackError] = useState("");
-  // Vérifier si l'utilisateur a déjà débloqué 3 fois aujourd'hui
+  // Désactivé temporairement : Toujours débloqué pour une UI propre
+  const [isUnlocked, setIsUnlocked] = useState(true);
+  /* Ancienne logique de pub
   const [isUnlocked, setIsUnlocked] = useState(() => {
     try {
       const count = parseInt(localStorage.getItem("cyberflix_unlock_count") || "0");
-      return count >= 3; // Débloqué auto après 3 fois
+      return count >= 3; 
     } catch {
       return false;
     }
   });
+  */
 
   const activeSource = useMemo(() => {
     if (!Array.isArray(servers) || servers.length === 0) return null;
@@ -274,12 +304,11 @@ export default function Player({
                 onClick={() => {
                   // Incrémenter le compteur
                   try {
-                    const current = parseInt(localStorage.getItem("cyberflix_unlock_count") || "0");
-                    localStorage.setItem("cyberflix_unlock_count", (current + 1).toString());
+                    incrementTodayUnlockCount();
                   } catch (e) {}
 
                   // Ouvrir le lien de pub Monetag Direct Link
-                  window.open("https://omg10.com/4/10993786", "_blank");
+                  openSponsorDirectLink();
                   setIsUnlocked(true);
                 }}
                 className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-cyber-fuchsia px-8 py-4 text-lg font-black text-white shadow-xl shadow-cyber-fuchsia/30 transition-all hover:scale-105 active:scale-95"

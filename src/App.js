@@ -8,6 +8,7 @@ import AdminStreamsPanel from "./components/AdminStreamsPanel";
 import Genres from "./components/Genres";
 import Footer from "./components/Footer";
 import AdBanner from "./components/AdBanner";
+import GlobalAdScripts from "./components/GlobalAdScripts";
 import AuthPanel from "./components/AuthPanel";
 import {
   authAPI,
@@ -59,6 +60,22 @@ const detailPath = (media, id) => `/${media}/${id}`;
 const episodeDetailPath = (id, seasonNumber, episodeNumber) =>
   `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`;
 const isAdminPath = (path) => path === ADMIN_STREAMS_PATH;
+
+/* Désactivé temporairement : Adsterra Popunder
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "//pl29419513.profitablecpmratenetwork.com/59/01/25/5901250872819b228a07ae053b34d586.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      try {
+        document.body.removeChild(script);
+      } catch {}
+    };
+  }, []);
+  */
 
 const setMeta = (name, content) => {
   let tag = document.querySelector(`meta[name="${name}"]`);
@@ -444,21 +461,6 @@ export default function App() {
   );
   const [mediaType, setMediaType] = useState("movie");
   const [items, setItems] = useState([]);
-
-  // Adsterra Popunder
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = "//pl29419513.profitablecpmratenetwork.com/59/01/25/5901250872819b228a07ae053b34d586.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      try {
-        document.body.removeChild(script);
-      } catch {}
-    };
-  }, []);
 
   const [genres, setGenres] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1362,6 +1364,8 @@ export default function App() {
       className="min-h-screen bg-cyber-dark text-cyan-50"
       dir={isRTL ? "rtl" : "ltr"}
     >
+      <GlobalAdScripts hidden={hasPremium} />
+
       <Header
         searchQuery={searchQuery}
         setSearchQuery={handleHeaderSearchChange}
