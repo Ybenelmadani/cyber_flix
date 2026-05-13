@@ -4,6 +4,7 @@ export default function AdBanner({
   hidden = false, 
   label = "Sponsorisé"
 }) {
+  return null; // Désactivation totale du bloc pour le moment
   const adContainerRef = useRef(null);
 
   useEffect(() => {
