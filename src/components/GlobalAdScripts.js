@@ -15,6 +15,7 @@ const appendScriptOnce = ({ id, src }) => {
 };
 
 export default function GlobalAdScripts({ hidden = false }) {
+  return null; // Désactivation globale temporaire
   useEffect(() => {
     if (hidden) return undefined;
 
