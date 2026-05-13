@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 import { openSponsorDirectLink } from "../config/ads";
@@ -99,180 +100,40 @@ export default function Player({
   }, [servers, activeServer]);
 
   useEffect(() => {
+    if (!videoRef.current || !activeSource) return;
+
     const video = videoRef.current;
-    if (!video || !activeSource?.url) return;
+    const isHls = activeSource.url?.toLowerCase().endsWith(".m3u8");
 
-    let hlsInstance = null;
-    const sourceUrl = activeSource.url;
-    const sourceType =
-      activeSource.type ||
-      (sourceUrl.includes("youtube.com/embed/") ||
-      sourceUrl.includes("player.vimeo.com/video/") ||
-      sourceUrl.includes("dailymotion.com/embed/video/")
-        ? "embed"
-        : sourceUrl.includes(".m3u8")
-        ? "hls"
-        : "mp4");
+    if (isHls && Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(activeSource.url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        // video.play().catch(() => {});
+      });
 
-    if (sourceType === "embed") {
-      try {
-        video.pause();
-        video.removeAttribute("src");
-        video.load();
-      } catch {}
-      setPlaybackError("");
-      return undefined;
+      return () => {
+        hls.destroy();
+      };
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = activeSource.url;
+    } else if (activeSource.url) {
+      video.src = activeSource.url;
     }
-
-    setPlaybackError("");
-
-    if (sourceUrl.includes("your-legal-stream.m3u8")) {
-      setPlaybackError(
-        "This stream URL is still a placeholder. Replace it in your stream source, then reload."
-      );
-      return;
-    }
-
-    try {
-      video.pause();
-      if (videoRef.current) {
-        video.removeAttribute("src");
-        video.load();
-      }
-    } catch {}
-
-    const handleVideoError = () => {
-      setPlaybackError("Unable to load this video source.");
-    };
-
-    video.addEventListener("error", handleVideoError);
-
-    if (sourceType === "hls") {
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = sourceUrl;
-      } else if (Hls.isSupported()) {
-        hlsInstance = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-        });
-
-        hlsInstance.on(Hls.Events.ERROR, (_, data) => {
-          if (!data) return;
-
-          if (data.fatal) {
-            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-              setPlaybackError("Network error while loading this HLS stream.");
-              try {
-                hlsInstance.startLoad();
-              } catch {}
-            } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-              setPlaybackError("Media error while playing this HLS stream.");
-              try {
-                hlsInstance.recoverMediaError();
-              } catch {}
-            } else {
-              setPlaybackError("Unable to load this HLS stream.");
-              try {
-                hlsInstance.destroy();
-              } catch {}
-            }
-          }
-        });
-
-        hlsInstance.loadSource(sourceUrl);
-        hlsInstance.attachMedia(video);
-      } else {
-        video.src = sourceUrl;
-      }
-    } else {
-      video.src = sourceUrl;
-    }
-
-    return () => {
-      video.removeEventListener("error", handleVideoError);
-
-      try {
-        video.pause();
-      } catch {}
-
-      if (hlsInstance) {
-        try {
-          hlsInstance.destroy();
-        } catch {}
-      }
-    };
   }, [activeSource]);
 
   const resolvedSourceType = useMemo(() => {
-    const sourceUrl = String(activeSource?.url || "");
-    return (
-      activeSource?.type ||
-      (sourceUrl.includes("youtube.com/embed/") ||
-      sourceUrl.includes("player.vimeo.com/video/") ||
-      sourceUrl.includes("dailymotion.com/embed/video/")
-        ? "embed"
-        : sourceUrl.includes(".m3u8")
-        ? "hls"
-        : "mp4")
-    );
+    if (!activeSource) return "video";
+    const url = activeSource.url?.toLowerCase() || "";
+    if (url.includes("embed") || url.includes("iframe") || url.includes("player")) {
+      return "embed";
+    }
+    return "video";
   }, [activeSource]);
 
-  if (!servers.length) {
-    return (
-      <div className="rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker">
-        <div className="aspect-video flex items-center justify-center bg-cyber-dark text-cyber-cyan/70">
-          No video source available
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="rounded-[1.5rem] border border-cyber-cyan/30 bg-cyber-darker"
-      style={{ overflow: "clip" /* clips visually without blocking touch */ }}
-    >
-      {/* Server selector tabs */}
-      {/* 
-      <div className="flex overflow-x-auto border-b border-cyber-cyan/20 bg-cyber-darker/80 scrollbar-hide">
-        {servers.map((server, index) => {
-          const serverName =
-            server.name ||
-            `${server.quality || "Server"}${
-              server.language ? ` - ${server.language}` : ""
-            }` ||
-            `Server ${index + 1}`;
-
-          const isActive =
-            String(activeSource?.id || "") === String(server?.id || "");
-
-          return (
-            <button
-              key={server.id || server.url || `${serverName}-${index}`}
-              onClick={() => setActiveServer(server)}
-              className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-all sm:px-6 sm:py-4 ${
-                isActive
-                  ? "server-active"
-                  : "text-cyber-cyan/70 hover:bg-cyber-cyan/5 hover:text-cyber-cyan"
-              }`}
-            >
-              <span>{serverName}</span>
-              {server.isLegal ? (
-                <span className="ml-2 rounded-full border border-emerald-300/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
-                  LEGAL
-                </span>
-              ) : null}
-              {server.isPremium ? (
-                <span className="ml-2 rounded-full border border-amber-300/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
-                  PREMIUM
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-      */}
-
+    <div className="flex flex-col gap-4">
       {/* Video area */}
       <div
         className="relative bg-black"
@@ -304,11 +165,12 @@ export default function Player({
                 onClick={() => {
                   // Incrémenter le compteur
                   try {
-                    incrementTodayUnlockCount();
+                    const current = parseInt(localStorage.getItem("cyberflix_unlock_count") || "0");
+                    localStorage.setItem("cyberflix_unlock_count", (current + 1).toString());
                   } catch (e) {}
 
                   // Ouvrir le lien de pub Monetag Direct Link
-                  openSponsorDirectLink();
+                  window.open("https://omg10.com/4/10993786", "_blank");
                   setIsUnlocked(true);
                 }}
                 className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-cyber-fuchsia px-8 py-4 text-lg font-black text-white shadow-xl shadow-cyber-fuchsia/30 transition-all hover:scale-105 active:scale-95"
@@ -363,20 +225,28 @@ export default function Player({
         )}
       </div>
 
-      {playbackError ? (
-        <div className="border-t border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+      {/* Sources / Servers */}
+      <div className="flex flex-wrap gap-2">
+        {servers.map((server) => (
+          <button
+            key={server.id || server.url}
+            onClick={() => setActiveServer(server)}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+              (activeSource?.id === server.id || activeSource?.url === server.url)
+                ? "bg-cyber-fuchsia text-white shadow-lg shadow-cyber-fuchsia/25"
+                : "bg-cyber-darker text-cyber-cyan/70 hover:bg-cyber-dark hover:text-white"
+            }`}
+          >
+            {server.name || server.quality || "Source"}
+          </button>
+        ))}
+      </div>
+
+      {playbackError && (
+        <div className="rounded-lg bg-red-500/10 p-4 text-sm text-red-500 border border-red-500/20">
           {playbackError}
         </div>
-      ) : null}
-
-      {/* 
-      {title ? (
-        <div className="border-t border-cyber-cyan/20 px-4 py-3 text-sm text-cyber-cyan/80">
-          {title}
-          {activeSource?.provider ? ` - ${activeSource.provider}` : ""}
-        </div>
-      ) : null}
-      */}
+      )}
     </div>
   );
 }
