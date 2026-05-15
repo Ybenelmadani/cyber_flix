@@ -30,9 +30,9 @@ export default function MovieCard({
           onClick();
         }
       }}
-      className="group block cursor-pointer text-left active:scale-[0.99]"
+      className="group block cursor-pointer text-left transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)] active:scale-[0.98]"
     >
-      <div className="relative mb-2.5 aspect-[2/3] overflow-hidden rounded-[1.15rem] border border-cyber-cyan/20 bg-cyber-darker shadow-lg transition-all group-hover:border-cyber-fuchsia/50 group-hover:shadow-cyber-fuchsia/20 sm:mb-3 sm:rounded-[1.4rem]">
+      <div className="relative mb-2.5 aspect-[2/3] overflow-hidden rounded-[1.15rem] border border-cyber-cyan/20 bg-cyber-darker shadow-lg transition-all duration-300 group-hover:border-cyber-fuchsia/60 group-hover:shadow-[0_0_20px_rgba(232,121,249,0.3)] sm:mb-3 sm:rounded-[1.4rem]">
         <img
           src={posterUrl}
           alt={title}

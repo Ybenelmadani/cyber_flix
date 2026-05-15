@@ -483,7 +483,7 @@ export default function Header({
             aria-label="Close mobile navigation overlay"
           />
 
-          <aside className="fixed inset-y-0 left-0 z-50 w-72 border-r border-cyber-cyan/20 bg-cyber-dark/95 p-4 shadow-[0_20px_55px_rgba(2,6,23,0.7)] backdrop-blur-xl lg:hidden">
+          <aside className="fixed inset-y-0 left-0 z-[100] w-72 border-r border-cyber-cyan/20 bg-[#020617] p-4 shadow-[0_20px_55px_rgba(2,6,23,0.9)] lg:hidden overflow-y-auto">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-[0.3em] text-cyber-cyan/60">
                 Navigation
