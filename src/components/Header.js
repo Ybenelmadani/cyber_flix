@@ -248,7 +248,7 @@ export default function Header({
 
 
   return (
-    <header className="sticky top-0 z-30 border-b border-cyber-cyan/15 bg-cyber-dark/88 px-2 py-1.5 backdrop-blur-xl sm:px-3">
+    <header className="sticky top-0 z-50 border-b border-cyber-cyan/20 bg-[#020617] px-2 py-2 sm:px-3">
       <div className="mx-auto flex w-full max-w-[118rem] items-center gap-2">
         <button
           type="button"
@@ -483,7 +483,7 @@ export default function Header({
             aria-label="Close mobile navigation overlay"
           />
 
-          <aside className="fixed inset-y-0 left-0 z-[100] w-72 border-r border-cyber-cyan/20 bg-[#020617] p-4 shadow-[0_20px_55px_rgba(2,6,23,0.9)] lg:hidden overflow-y-auto">
+          <aside className="fixed inset-y-0 left-0 z-50 w-72 border-r border-cyber-cyan/20 bg-cyber-dark/95 p-4 shadow-[0_20px_55px_rgba(2,6,23,0.7)] backdrop-blur-xl lg:hidden">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-[0.3em] text-cyber-cyan/60">
                 Navigation
