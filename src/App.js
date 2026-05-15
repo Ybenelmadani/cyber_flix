@@ -62,21 +62,7 @@ const episodeDetailPath = (id, seasonNumber, episodeNumber) =>
   `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`;
 const isAdminPath = (path) => path === ADMIN_STREAMS_PATH;
 
-/* Désactivé temporairement : Adsterra Popunder
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = "//pl29419513.profitablecpmratenetwork.com/59/01/25/5901250872819b228a07ae053b34d586.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      try {
-        document.body.removeChild(script);
-      } catch {}
-    };
-  }, []);
-  */
+// Code pub supprimé complètement pour éviter les alertes de sécurité
 
 const setMeta = (name, content) => {
   let tag = document.querySelector(`meta[name="${name}"]`);

@@ -169,8 +169,8 @@ export default function Player({
                     localStorage.setItem("cyberflix_unlock_count", (current + 1).toString());
                   } catch (e) {}
 
-                  // Ouvrir le lien de pub Monetag Direct Link
-                  window.open("https://omg10.com/4/10993786", "_blank");
+                  // Lien supprimé pour éviter l'alerte
+                  // window.open("...", "_blank");
                   setIsUnlocked(true);
                 }}
                 className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-cyber-fuchsia px-8 py-4 text-lg font-black text-white shadow-xl shadow-cyber-fuchsia/30 transition-all hover:scale-105 active:scale-95"
