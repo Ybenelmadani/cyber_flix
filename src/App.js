@@ -1348,7 +1348,7 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-cyber-dark text-cyan-50"
+      className="min-h-screen bg-cyber-dark text-cyan-50 overflow-x-hidden"
       dir={isRTL ? "rtl" : "ltr"}
     >
       <GlobalAdScripts hidden={hasPremium} />

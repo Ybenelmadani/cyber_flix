@@ -189,7 +189,7 @@ export default function EpisodeDetail({
           </div>
         </aside>
 
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           {trailer ? (
             <section className="card-neon p-5 sm:p-6">
               <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
