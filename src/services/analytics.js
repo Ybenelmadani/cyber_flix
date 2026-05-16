@@ -4,7 +4,7 @@ const sendGA = (eventName, params = {}) => {
   if (typeof window === "undefined") {
     return;
   }
-  if (window.gtag && GA_ID) {
+  if (window.gtag) {
     window.gtag("event", eventName, params);
   }
 };
