@@ -150,7 +150,7 @@ export default function MovieDetail({
   activeServer,
   setActiveServer,
   currentUser = null,
-  onRequireAuth = () => {},
+  onRequireAuth = () => { },
 }) {
   if (!movie) return null;
 
@@ -242,19 +242,19 @@ export default function MovieDetail({
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(2,6,23,0.95),rgba(2,6,23,0.88),rgba(15,23,42,0.92))]" />
 
         <div className="relative px-5 py-6 sm:px-8 sm:py-8">
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button
-                onClick={onBack}
-                className="btn-cyber min-h-[48px] px-4 py-2 text-sm sm:w-auto"
-              >
-                {text.back || "Back"}
-              </button>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <button
+              onClick={onBack}
+              className="btn-cyber min-h-[48px] px-4 py-2 text-sm sm:w-auto"
+            >
+              {text.back || "Back"}
+            </button>
 
-              <button
-                type="button"
-                onClick={onToggleFavorite}
-                className="min-h-[48px] rounded-xl border border-cyber-cyan/30 px-4 py-2 text-sm text-cyber-cyan transition hover:border-cyber-fuchsia hover:text-cyber-fuchsia"
-              >
+            <button
+              type="button"
+              onClick={onToggleFavorite}
+              className="min-h-[48px] rounded-xl border border-cyber-cyan/30 px-4 py-2 text-sm text-cyber-cyan transition hover:border-cyber-fuchsia hover:text-cyber-fuchsia"
+            >
               {isFavorite
                 ? text.removeFavorite || "Remove Favorite"
                 : text.addFavorite || "Add Favorite"}
@@ -291,13 +291,13 @@ export default function MovieDetail({
               </span>
               {Array.isArray(movie.genres) && movie.genres.length > 0
                 ? movie.genres.map((genre) => (
-                    <span
-                      key={genre.id}
-                      className="rounded-full border border-cyber-cyan/30 bg-cyber-cyan/10 px-3 py-1 text-sm text-cyber-cyan"
-                    >
-                      {genre.name}
-                    </span>
-                  ))
+                  <span
+                    key={genre.id}
+                    className="rounded-full border border-cyber-cyan/30 bg-cyber-cyan/10 px-3 py-1 text-sm text-cyber-cyan"
+                  >
+                    {genre.name}
+                  </span>
+                ))
                 : null}
             </div>
           </div>
@@ -376,8 +376,8 @@ export default function MovieDetail({
 
           {/* Seasons and episodes section moved here, right after trailer */}
           {mediaType === "tv" &&
-          Array.isArray(movie.seasons) &&
-          movie.seasons.length > 0 ? (
+            Array.isArray(movie.seasons) &&
+            movie.seasons.length > 0 ? (
             <section className="card-neon p-5 sm:p-6 bg-gradient-to-b from-cyber-darker/80 to-cyber-dark/40 border-t-2 border-t-cyber-fuchsia/30">
               <div className="mb-4 sm:mb-6 flex items-center justify-between">
                 <h3 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-fuchsia">
@@ -395,11 +395,10 @@ export default function MovieDetail({
                       onClick={() =>
                         onSeasonSelect && onSeasonSelect(season.season_number)
                       }
-                      className={`shrink-0 rounded-full border-2 px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold transition-all duration-300 ${
-                        selectedSeason === season.season_number
+                      className={`shrink-0 rounded-full border-2 px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold transition-all duration-300 ${selectedSeason === season.season_number
                           ? "border-cyber-fuchsia bg-cyber-fuchsia text-white shadow-[0_0_15px_rgba(232,121,249,0.5)] scale-105"
                           : "border-cyber-cyan/30 bg-cyber-dark text-cyber-cyan hover:border-cyber-cyan hover:bg-cyber-cyan/10"
-                      }`}
+                        }`}
                     >
                       {text.season || "Season"} {season.season_number}
                     </button>
@@ -407,7 +406,7 @@ export default function MovieDetail({
               </div>
 
               {seasonDetails?.episodes?.length ? (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                   {seasonDetails.episodes.map((episode) => (
                     <button
                       key={episode.id}
@@ -416,9 +415,9 @@ export default function MovieDetail({
                         onEpisodeSelect &&
                         onEpisodeSelect(episode.episode_number)
                       }
-                      className="group relative block w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-[1.5rem] border-2 border-cyber-cyan/10 bg-cyber-darker/60 text-left transition-all duration-300 hover:-translate-y-2 hover:border-cyber-fuchsia/50 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)]"
+                      className="group flex w-full flex-col lg:flex-row xl:flex-col overflow-hidden rounded-2xl border-2 border-cyber-cyan/10 bg-cyber-darker/60 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyber-fuchsia/50 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)]"
                     >
-                      <div className="aspect-video relative border-b-2 border-cyber-cyan/20 bg-cyber-dark overflow-hidden">
+                      <div className="relative w-full aspect-video lg:h-28 lg:w-1/3 lg:aspect-auto xl:w-full xl:aspect-video xl:h-auto border-b-2 lg:border-b-0 lg:border-r-2 xl:border-r-0 xl:border-b-2 border-cyber-cyan/20 bg-cyber-dark overflow-hidden shrink-0">
                         <img
                           src={
                             episode.still_path
@@ -429,20 +428,20 @@ export default function MovieDetail({
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                           loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark to-transparent opacity-80" />
-                        <div className="absolute bottom-2 left-3 sm:bottom-3 sm:left-4">
-                          <span className="rounded-full border border-cyber-cyan/30 bg-cyber-dark/80 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-cyber-cyan backdrop-blur">
-                            {text.episode || "Episode"} {episode.episode_number}
+                        <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark/80 to-transparent opacity-80" />
+                        <div className="absolute bottom-2 left-3">
+                          <span className="rounded-full border border-cyber-cyan/30 bg-cyber-dark/80 px-2 py-0.5 text-xs font-bold text-cyber-cyan backdrop-blur">
+                            Ep {episode.episode_number}
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-4 sm:p-5">
-                        <h4 className="font-bold text-cyan-50 text-sm sm:text-base mb-1 sm:mb-2 group-hover:text-cyber-fuchsia transition-colors">
+                      <div className="p-4 lg:p-3 xl:p-4 w-full min-w-0 flex flex-col justify-center">
+                        <h4 className="font-bold text-cyan-50 text-sm mb-1 truncate group-hover:text-cyber-fuchsia transition-colors">
                           {episode.name}
                         </h4>
 
-                        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyber-cyan/60">
+                        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-cyber-cyan/60 mb-1">
                           <span>{episode.air_date || naText}</span>
                           <span>•</span>
                           <span>
@@ -452,7 +451,7 @@ export default function MovieDetail({
                           </span>
                         </p>
 
-                        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-cyber-cyan/80">
+                        <p className="line-clamp-2 text-xs leading-relaxed text-cyber-cyan/80">
                           {episode.overview || text.noOverview}
                         </p>
                       </div>
@@ -663,8 +662,8 @@ export default function MovieDetail({
                     meta={
                       person.popularity
                         ? `${text.popularity || "Popularity"}: ${Number(
-                            person.popularity
-                          ).toFixed(1)}`
+                          person.popularity
+                        ).toFixed(1)}`
                         : person.known_for_department || ""
                     }
                   />
@@ -823,11 +822,10 @@ export default function MovieDetail({
                   onClick={() =>
                     onProviderCountryChange && onProviderCountryChange(countryCode)
                   }
-                  className={`rounded-xl border px-3 py-2 text-xs font-semibold sm:text-sm ${
-                    providerCountry === countryCode
+                  className={`rounded-xl border px-3 py-2 text-xs font-semibold sm:text-sm ${providerCountry === countryCode
                       ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
                       : "border-cyber-cyan/30 text-cyber-cyan"
-                  }`}
+                    }`}
                 >
                   {countryCode}
                 </button>
@@ -838,7 +836,7 @@ export default function MovieDetail({
               <div className="space-y-4">
                 {providerGroups.map((group) =>
                   Array.isArray(providersByCountry[group.key]) &&
-                  providersByCountry[group.key].length > 0 ? (
+                    providersByCountry[group.key].length > 0 ? (
                     <div key={group.key}>
                       <p className="mb-2 text-sm text-cyber-cyan/80">
                         {group.label}
