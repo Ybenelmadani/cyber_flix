@@ -385,7 +385,7 @@ export default function MovieDetail({
                 </h3>
               </div>
 
-              <div className="-mx-5 mb-5 flex gap-3 overflow-x-auto px-5 pb-3 scrollbar-hide sm:mx-0 sm:mb-6 sm:flex-wrap sm:px-0 sm:pb-2">
+              <div className="mb-5 flex gap-3 overflow-x-auto pb-3 scrollbar-hide sm:mb-6 sm:flex-wrap sm:pb-2">
                 {movie.seasons
                   .filter((season) => season.season_number > 0)
                   .map((season) => (
@@ -416,7 +416,7 @@ export default function MovieDetail({
                         onEpisodeSelect &&
                         onEpisodeSelect(episode.episode_number)
                       }
-                      className="group relative overflow-hidden rounded-2xl sm:rounded-[1.5rem] border-2 border-cyber-cyan/10 bg-cyber-darker/60 text-left transition-all duration-300 hover:-translate-y-2 hover:border-cyber-fuchsia/50 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)]"
+                      className="group relative block w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-[1.5rem] border-2 border-cyber-cyan/10 bg-cyber-darker/60 text-left transition-all duration-300 hover:-translate-y-2 hover:border-cyber-fuchsia/50 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)]"
                     >
                       <div className="aspect-video relative border-b-2 border-cyber-cyan/20 bg-cyber-dark overflow-hidden">
                         <img
