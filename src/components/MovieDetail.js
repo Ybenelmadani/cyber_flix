@@ -374,6 +374,101 @@ export default function MovieDetail({
             </section>
           ) : null}
 
+          {/* Seasons and episodes section moved here, right after trailer */}
+          {mediaType === "tv" &&
+          Array.isArray(movie.seasons) &&
+          movie.seasons.length > 0 ? (
+            <section className="card-neon p-5 sm:p-6 bg-gradient-to-b from-cyber-darker/80 to-cyber-dark/40 border-t-2 border-t-cyber-fuchsia/30">
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-fuchsia">
+                  {text.seasonsAndEpisodes || "Seasons and episodes"}
+                </h3>
+              </div>
+
+              <div className="-mx-1 mb-6 flex gap-3 overflow-x-auto px-1 pb-2 scrollbar-hide sm:mx-0 sm:flex-wrap sm:px-0">
+                {movie.seasons
+                  .filter((season) => season.season_number > 0)
+                  .map((season) => (
+                    <button
+                      key={season.id || season.season_number}
+                      type="button"
+                      onClick={() =>
+                        onSeasonSelect && onSeasonSelect(season.season_number)
+                      }
+                      className={`shrink-0 rounded-full border-2 px-5 py-2 text-sm font-bold transition-all duration-300 ${
+                        selectedSeason === season.season_number
+                          ? "border-cyber-fuchsia bg-cyber-fuchsia text-white shadow-[0_0_15px_rgba(232,121,249,0.5)] scale-105"
+                          : "border-cyber-cyan/30 bg-cyber-dark text-cyber-cyan hover:border-cyber-cyan hover:bg-cyber-cyan/10"
+                      }`}
+                    >
+                      {text.season || "Season"} {season.season_number}
+                    </button>
+                  ))}
+              </div>
+
+              {seasonDetails?.episodes?.length ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {seasonDetails.episodes.map((episode) => (
+                    <button
+                      key={episode.id}
+                      type="button"
+                      onClick={() =>
+                        onEpisodeSelect &&
+                        onEpisodeSelect(episode.episode_number)
+                      }
+                      className="group relative overflow-hidden rounded-[1.5rem] border-2 border-cyber-cyan/10 bg-cyber-darker/60 text-left transition-all duration-300 hover:-translate-y-2 hover:border-cyber-fuchsia/50 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)]"
+                    >
+                      <div className="aspect-video relative border-b-2 border-cyber-cyan/20 bg-cyber-dark overflow-hidden">
+                        <img
+                          src={
+                            episode.still_path
+                              ? `https://image.tmdb.org/t/p/w780${episode.still_path}`
+                              : FALLBACK_EPISODE_IMAGE
+                          }
+                          alt={`${episode.name || title} still`}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark to-transparent opacity-80" />
+                        <div className="absolute bottom-3 left-4">
+                          <span className="rounded-full border border-cyber-cyan/30 bg-cyber-dark/80 px-3 py-1 text-xs font-bold text-cyber-cyan backdrop-blur">
+                            {text.episode || "Episode"} {episode.episode_number}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-5">
+                        <h4 className="font-bold text-cyan-50 text-base mb-2 group-hover:text-cyber-fuchsia transition-colors">
+                          {episode.name}
+                        </h4>
+
+                        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyber-cyan/60">
+                          <span>{episode.air_date || naText}</span>
+                          <span>•</span>
+                          <span>
+                            {episode.runtime
+                              ? `${episode.runtime} ${text.minutes || "min"}`
+                              : naText}
+                          </span>
+                        </p>
+
+                        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-cyber-cyan/80">
+                          {episode.overview || text.noOverview}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-cyber-cyan/20 bg-cyber-dark/50 p-6 text-center">
+                  <p className="text-cyber-cyan/70">
+                    {text.noEpisodes || "No episodes found for this season."}
+                  </p>
+                </div>
+              )}
+            </section>
+          ) : null}
+
           {/* Watch now — juste après le trailer */}
           <section className="card-neon overflow-hidden p-5 sm:p-6">
             <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
@@ -792,88 +887,6 @@ export default function MovieDetail({
           </section>
         </div>
       </div>
-
-      {mediaType === "tv" &&
-      Array.isArray(movie.seasons) &&
-      movie.seasons.length > 0 ? (
-        <section className="card-neon p-5 sm:p-6">
-          <h3 className="mb-4 text-xl font-bold text-cyber-cyan">
-            {text.seasonsAndEpisodes || "Seasons and episodes"}
-          </h3>
-
-            <div className="-mx-1 mb-5 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide sm:mx-0 sm:flex-wrap sm:px-0">
-              {movie.seasons
-                .filter((season) => season.season_number > 0)
-                .map((season) => (
-                  <button
-                    key={season.id || season.season_number}
-                    type="button"
-                    onClick={() =>
-                      onSeasonSelect && onSeasonSelect(season.season_number)
-                    }
-                    className={`shrink-0 rounded-xl border px-3 py-2 text-sm ${
-                      selectedSeason === season.season_number
-                        ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
-                        : "border-cyber-cyan/30 text-cyber-cyan"
-                    }`}
-                >
-                  {text.season || "Season"} {season.season_number}
-                </button>
-              ))}
-          </div>
-
-          {seasonDetails?.episodes?.length ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {seasonDetails.episodes.map((episode) => (
-                <button
-                  key={episode.id}
-                  type="button"
-                  onClick={() =>
-                    onEpisodeSelect &&
-                    onEpisodeSelect(episode.episode_number)
-                  }
-                  className="overflow-hidden rounded-[1.5rem] border border-cyber-cyan/20 bg-cyber-darker/40 text-left transition hover:-translate-y-1 hover:border-cyber-fuchsia/40 hover:shadow-lg hover:shadow-cyber-fuchsia/10"
-                >
-                  <div className="aspect-video border-b border-cyber-cyan/10 bg-cyber-dark">
-                    <img
-                      src={
-                        episode.still_path
-                          ? `https://image.tmdb.org/t/p/w780${episode.still_path}`
-                          : FALLBACK_EPISODE_IMAGE
-                      }
-                      alt={`${episode.name || title} still`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  <div className="p-4">
-                    <p className="font-semibold text-cyber-cyan">
-                      {text.episode || "Episode"} {episode.episode_number}:{" "}
-                      {episode.name}
-                    </p>
-
-                    <p className="mt-1 text-sm text-cyber-cyan/70">
-                      {episode.air_date || naText} -{" "}
-                      {episode.runtime
-                        ? `${episode.runtime} ${text.minutes || "min"}`
-                        : naText}
-                    </p>
-
-                    <p className="mt-2 line-clamp-3 text-sm text-cyber-cyan/70">
-                      {episode.overview || text.noOverview}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-cyber-cyan/70">
-              {text.noEpisodes || "No episodes found for this season."}
-            </p>
-          )}
-        </section>
-      ) : null}
     </div>
   );
 }
