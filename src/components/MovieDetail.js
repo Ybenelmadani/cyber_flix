@@ -379,13 +379,13 @@ export default function MovieDetail({
           Array.isArray(movie.seasons) &&
           movie.seasons.length > 0 ? (
             <section className="card-neon p-5 sm:p-6 bg-gradient-to-b from-cyber-darker/80 to-cyber-dark/40 border-t-2 border-t-cyber-fuchsia/30">
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-fuchsia">
+              <div className="mb-4 sm:mb-6 flex items-center justify-between">
+                <h3 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-fuchsia">
                   {text.seasonsAndEpisodes || "Seasons and episodes"}
                 </h3>
               </div>
 
-              <div className="-mx-1 mb-6 flex gap-3 overflow-x-auto px-1 pb-2 scrollbar-hide sm:mx-0 sm:flex-wrap sm:px-0">
+              <div className="-mx-5 mb-5 flex gap-3 overflow-x-auto px-5 pb-3 scrollbar-hide sm:mx-0 sm:mb-6 sm:flex-wrap sm:px-0 sm:pb-2">
                 {movie.seasons
                   .filter((season) => season.season_number > 0)
                   .map((season) => (
@@ -395,7 +395,7 @@ export default function MovieDetail({
                       onClick={() =>
                         onSeasonSelect && onSeasonSelect(season.season_number)
                       }
-                      className={`shrink-0 rounded-full border-2 px-5 py-2 text-sm font-bold transition-all duration-300 ${
+                      className={`shrink-0 rounded-full border-2 px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold transition-all duration-300 ${
                         selectedSeason === season.season_number
                           ? "border-cyber-fuchsia bg-cyber-fuchsia text-white shadow-[0_0_15px_rgba(232,121,249,0.5)] scale-105"
                           : "border-cyber-cyan/30 bg-cyber-dark text-cyber-cyan hover:border-cyber-cyan hover:bg-cyber-cyan/10"
@@ -416,7 +416,7 @@ export default function MovieDetail({
                         onEpisodeSelect &&
                         onEpisodeSelect(episode.episode_number)
                       }
-                      className="group relative overflow-hidden rounded-[1.5rem] border-2 border-cyber-cyan/10 bg-cyber-darker/60 text-left transition-all duration-300 hover:-translate-y-2 hover:border-cyber-fuchsia/50 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)]"
+                      className="group relative overflow-hidden rounded-2xl sm:rounded-[1.5rem] border-2 border-cyber-cyan/10 bg-cyber-darker/60 text-left transition-all duration-300 hover:-translate-y-2 hover:border-cyber-fuchsia/50 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)]"
                     >
                       <div className="aspect-video relative border-b-2 border-cyber-cyan/20 bg-cyber-dark overflow-hidden">
                         <img
@@ -430,15 +430,15 @@ export default function MovieDetail({
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark to-transparent opacity-80" />
-                        <div className="absolute bottom-3 left-4">
-                          <span className="rounded-full border border-cyber-cyan/30 bg-cyber-dark/80 px-3 py-1 text-xs font-bold text-cyber-cyan backdrop-blur">
+                        <div className="absolute bottom-2 left-3 sm:bottom-3 sm:left-4">
+                          <span className="rounded-full border border-cyber-cyan/30 bg-cyber-dark/80 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-cyber-cyan backdrop-blur">
                             {text.episode || "Episode"} {episode.episode_number}
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-5">
-                        <h4 className="font-bold text-cyan-50 text-base mb-2 group-hover:text-cyber-fuchsia transition-colors">
+                      <div className="p-4 sm:p-5">
+                        <h4 className="font-bold text-cyan-50 text-sm sm:text-base mb-1 sm:mb-2 group-hover:text-cyber-fuchsia transition-colors">
                           {episode.name}
                         </h4>
 
