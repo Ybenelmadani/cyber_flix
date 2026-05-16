@@ -1,4 +1,5 @@
 import React from "react";
+import { Calendar, Clock, Download, Globe, Play, Star, Users, Zap } from "lucide-react";
 import Player from "./Player";
 
 const FALLBACK_EPISODE_IMAGE =
@@ -11,6 +12,13 @@ const FALLBACK_PERSON_IMAGE =
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="400" viewBox="0 0 320 400"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#081226"/><stop offset="100%" stop-color="#111c34"/></linearGradient><linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16233f"/><stop offset="100%" stop-color="#0c1427"/></linearGradient></defs><rect width="320" height="400" rx="28" fill="url(#bg)"/><circle cx="272" cy="48" r="56" fill="#22d3ee" opacity=".08"/><circle cx="56" cy="338" r="72" fill="#ec4899" opacity=".08"/><rect x="28" y="28" width="264" height="344" rx="24" fill="url(#card)" stroke="#2dd4bf" stroke-opacity=".18"/><circle cx="160" cy="135" r="54" fill="#0f172a" stroke="#22d3ee" stroke-width="5"/><path d="M88 286c18-46 52-76 72-76s54 30 72 76" fill="#0f172a" stroke="#22d3ee" stroke-width="5" stroke-linecap="round"/><text x="50%" y="328" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">Profile unavailable</text><text x="50%" y="352" fill="#7dd3fc" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">TMDB has no image for this person</text></svg>'
   );
+
+const AUTO_PROVIDERS_TV = [
+  { name: "VidSrc ME", url: (id, s, e) => `https://vidsrc.me/embed/tv?tmdb=${id}&sea=${s}&epi=${e}`, color: "border-blue-500/30 hover:shadow-blue-500/20" },
+  { name: "VidSrc TO", url: (id, s, e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`, color: "border-fuchsia-500/30 hover:shadow-fuchsia-500/20" },
+  { name: "SuperEmbed", url: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`, color: "border-amber-500/30 hover:shadow-amber-500/20" },
+  { name: "Smashy", url: (id, s, e) => `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${s}&episode=${e}`, color: "border-emerald-500/30 hover:shadow-emerald-500/20" },
+];
 
 const getTrailer = (videos) => {
   const results = videos?.results || [];
@@ -213,6 +221,7 @@ export default function EpisodeDetail({
           {/* Watch Now — après le trailer, plein-largeur mobile */}
           {(() => {
             const legalServers = servers.filter((s) => Boolean(s.isLegal));
+            const downloadServers = servers.filter((s) => !s.isLegal);
             const hasLegalStreams = legalServers.length > 0;
             const posterUrl = stillUrl;
             const epTitle =
@@ -220,7 +229,8 @@ export default function EpisodeDetail({
               `${text.episode || "Episode"} ${episode.episode_number}`;
 
             return (
-              <section className="card-neon overflow-hidden p-5 sm:p-6">
+              <>
+                <section className="card-neon overflow-hidden p-5 sm:p-6">
                 <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
                   {text.watchNow || "Watch now"}
                 </h3>
@@ -244,8 +254,78 @@ export default function EpisodeDetail({
                   )}
                 </div>
               </section>
-            );
-          })()}
+
+              <section className="card-neon p-5 sm:p-6">
+                <div className="mb-4 flex flex-col gap-1">
+                  <h3 className="text-xl font-bold text-cyber-cyan flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-amber-400" />
+                    {text.autoServers || "Automatic servers"}
+                  </h3>
+                  <p className="text-xs text-cyber-cyan/50">
+                    {text.autoServerDesc || "External sources generated automatically."}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {AUTO_PROVIDERS_TV.map((provider) => (
+                    <a
+                      key={provider.name}
+                      href={provider.url(episode.show_id || show.id, episode.season_number, episode.episode_number)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`flex flex-col items-center justify-center gap-2 rounded-2xl border bg-cyber-dark/40 p-4 transition-all hover:-translate-y-1 hover:bg-cyber-darker/60 ${provider.color} group`}
+                    >
+                      <div className="rounded-full bg-cyber-cyan/10 p-2 group-hover:bg-cyber-fuchsia/20 transition-colors">
+                        <Play className="h-4 w-4 text-cyber-cyan group-hover:text-cyber-fuchsia" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-cyan-50">
+                        {provider.name}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </section>
+
+              {downloadServers.length > 0 && (
+                <section className="card-neon p-5 sm:p-6">
+                  <h3 className="mb-4 text-xl font-bold text-cyber-cyan flex items-center gap-2">
+                    <Download className="h-5 w-5" />
+                    {text.downloadServers || "Download servers"}
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                    {downloadServers.map((server) => (
+                      <div
+                        key={server.id}
+                        className="group relative overflow-hidden rounded-2xl border border-cyber-cyan/10 bg-cyber-darker/60 p-4 transition-all hover:border-cyber-fuchsia/40"
+                      >
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-cyber-cyan/50">
+                            {server.provider || "Server"}
+                          </span>
+                          <span className="rounded-md bg-cyber-cyan/10 px-2 py-0.5 text-[10px] font-bold text-cyber-cyan border border-cyber-cyan/20">
+                            {server.quality || "1080p"}
+                          </span>
+                        </div>
+                        <h4 className="mb-4 text-sm font-bold text-cyan-50 truncate">
+                          {server.name}
+                        </h4>
+                        <a
+                          href={server.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyber-cyan/10 py-2.5 text-xs font-bold text-cyber-cyan border border-cyber-cyan/20 transition-all hover:bg-cyber-fuchsia hover:text-white hover:border-cyber-fuchsia shadow-lg shadow-cyber-cyan/5"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          {text.downloadNow || "Download Now"}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          );
+        })()}
 
           <section className="card-neon p-5 sm:p-6">
             <h2 className="text-xl font-bold text-cyber-cyan">

@@ -185,6 +185,10 @@ const TRANSLATIONS = {
       reviewsDeleteReply: "Delete reply",
       reviewsReplyingTo: "Replying to",
       na: "N/A",
+      downloadServers: "Download servers",
+      downloadNow: "Download now",
+      autoServers: "Automatic servers",
+      autoServerDesc: "External sources generated automatically.",
     },
     auth: {
       loginTitle: "Sign in",
@@ -317,6 +321,10 @@ const TRANSLATIONS = {
       reviewsDeleteReply: "Supprimer la reponse",
       reviewsReplyingTo: "Reponse a",
       na: "N/A",
+      downloadServers: "Serveurs de téléchargement",
+      downloadNow: "Télécharger",
+      autoServers: "Serveurs automatiques",
+      autoServerDesc: "Sources externes générées automatiquement.",
     },
     auth: {
       loginTitle: "Connexion",
@@ -419,6 +427,10 @@ const TRANSLATIONS = {
       buy: "شراء",
       free: "مجاني",
       na: "غير متوفر",
+      downloadServers: "سيرفرات التحميل",
+      downloadNow: "حمل الآن",
+      autoServers: "سيرفرات تلقائية",
+      autoServerDesc: "مصادر خارجية يتم إنشاؤها تلقائيًا.",
     },
     auth: {
       loginTitle: "تسجيل الدخول",
@@ -586,6 +598,33 @@ export default function App() {
       url: source.url || "",
     }));
   }, []);
+
+  const loadScrapedLinks = useCallback(
+    async ({ title, year, mediaType, seasonNumber, episodeNumber }) => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || ""}/api/scraper/links`, {
+          params: { title, year, mediaType, season: seasonNumber, episode: episodeNumber }
+        });
+        
+        if (response.data.success) {
+          const scraped = response.data.results.flatMap((res) =>
+            res.servers.map((s, idx) => ({
+              ...s,
+              id: `scraped-${res.provider}-${idx}-${Math.random()}`,
+              isLegal: false,
+              isScraped: true,
+            }))
+          );
+          
+          const normalized = normalizeServers(scraped);
+          setServers((prev) => [...prev, ...normalized]);
+        }
+      } catch (err) {
+        console.error("Scraper fetch error:", err);
+      }
+    },
+    [normalizeServers]
+  );
 
   const resolvePlaybackServer = useCallback(
     async ({
@@ -840,6 +879,15 @@ export default function App() {
           setActiveServer(null);
         }
 
+        // Trigger Scraper for Episode
+        loadScrapedLinks({
+          title: showDetails.name || showDetails.original_name,
+          year: new Date(showDetails.first_air_date).getFullYear(),
+          mediaType: "tv",
+          seasonNumber,
+          episodeNumber,
+        });
+
         trackEvent("open_episode_detail", {
           media_type: "tv",
           item_id: showId,
@@ -934,6 +982,13 @@ export default function App() {
             setServers([]);
             setActiveServer(null);
           }
+
+          // Trigger Scraper for Movie
+          loadScrapedLinks({
+            title: data.title || data.original_title,
+            year: new Date(data.release_date).getFullYear(),
+            mediaType: "movie",
+          });
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
