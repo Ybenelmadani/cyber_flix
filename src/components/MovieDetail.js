@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Clock, Download, Globe, Heart, Play, Star, TrendingUp, Users, Zap } from "lucide-react";
+import { Calendar, Clock, Download, Globe, Heart, Play, Star, TrendingUp, Users } from "lucide-react";
 import Player from "./Player";
 import TitleReviews from "./TitleReviews";
 
@@ -19,12 +19,7 @@ const FALLBACK_PERSON_IMAGE =
     '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="400" viewBox="0 0 320 400"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#081226"/><stop offset="100%" stop-color="#111c34"/></linearGradient><linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16233f"/><stop offset="100%" stop-color="#0c1427"/></linearGradient></defs><rect width="320" height="400" rx="28" fill="url(#bg)"/><circle cx="272" cy="48" r="56" fill="#22d3ee" opacity=".08"/><circle cx="56" cy="338" r="72" fill="#ec4899" opacity=".08"/><rect x="28" y="28" width="264" height="344" rx="24" fill="url(#card)" stroke="#2dd4bf" stroke-opacity=".18"/><circle cx="160" cy="135" r="54" fill="#0f172a" stroke="#22d3ee" stroke-width="5"/><path d="M88 286c18-46 52-76 72-76s54 30 72 76" fill="#0f172a" stroke="#22d3ee" stroke-width="5" stroke-linecap="round"/><text x="50%" y="328" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">Profile unavailable</text><text x="50%" y="352" fill="#7dd3fc" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">TMDB has no image for this person</text></svg>'
   );
 
-const AUTO_PROVIDERS_MOVIE = [
-  { name: "VidSrc ME", url: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}`, color: "border-blue-500/30 hover:shadow-blue-500/20" },
-  { name: "VidSrc TO", url: (id) => `https://vidsrc.to/embed/movie/${id}`, color: "border-fuchsia-500/30 hover:shadow-fuchsia-500/20" },
-  { name: "SuperEmbed", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1`, color: "border-amber-500/30 hover:shadow-amber-500/20" },
-  { name: "Smashy", url: (id) => `https://embed.smashystream.com/playere.php?tmdb=${id}`, color: "border-emerald-500/30 hover:shadow-emerald-500/20" },
-];
+
 
 const getTrailer = (videos) => {
   const results = videos?.results || [];
@@ -522,36 +517,7 @@ export default function MovieDetail({
             </div>
           </section>
 
-          <section className="card-neon p-5 sm:p-6">
-            <div className="mb-4 flex flex-col gap-1">
-              <h3 className="text-xl font-bold text-cyber-cyan flex items-center gap-2">
-                <Zap className="h-5 w-5 text-amber-400" />
-                {text.autoServers || "Automatic servers"}
-              </h3>
-              <p className="text-xs text-cyber-cyan/50">
-                {text.autoServerDesc || "External sources generated automatically."}
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {AUTO_PROVIDERS_MOVIE.map((provider) => (
-                <a
-                  key={provider.name}
-                  href={provider.url(movie.id)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`flex flex-col items-center justify-center gap-2 rounded-2xl border bg-cyber-dark/40 p-4 transition-all hover:-translate-y-1 hover:bg-cyber-darker/60 ${provider.color} group`}
-                >
-                  <div className="rounded-full bg-cyber-cyan/10 p-2 group-hover:bg-cyber-fuchsia/20 transition-colors">
-                    <Play className="h-4 w-4 text-cyber-cyan group-hover:text-cyber-fuchsia" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-cyan-50">
-                    {provider.name}
-                  </span>
-                </a>
-              ))}
-            </div>
-          </section>
+
 
           {downloadServers.length > 0 && (
             <section className="card-neon p-5 sm:p-6">
