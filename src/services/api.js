@@ -325,3 +325,16 @@ export const paymentsAPI = {
       method: "POST",
     }),
 };
+
+export const scraperAPI = {
+  getLinks: ({ title, year, mediaType, season, episode }) => {
+    const params = new URLSearchParams();
+    if (title) params.set("title", title);
+    if (year) params.set("year", year);
+    if (mediaType) params.set("mediaType", mediaType);
+    if (season) params.set("season", season);
+    if (episode) params.set("episode", episode);
+    const query = params.toString();
+    return request(`/scraper/links${query ? `?${query}` : ""}`);
+  }
+};

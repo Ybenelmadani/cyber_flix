@@ -18,6 +18,7 @@ import {
   getAuthToken,
   moviesAPI,
   paymentsAPI,
+  scraperAPI,
   setAuthToken,
   streamsAPI,
   tmdbAPI,
@@ -603,12 +604,16 @@ export default function App() {
   const loadScrapedLinks = useCallback(
     async ({ title, year, mediaType, seasonNumber, episodeNumber }) => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || ""}/api/scraper/links`, {
-          params: { title, year, mediaType, season: seasonNumber, episode: episodeNumber }
+        const response = await scraperAPI.getLinks({
+          title,
+          year,
+          mediaType,
+          season: seasonNumber,
+          episode: episodeNumber
         });
         
-        if (response.data.success) {
-          const scraped = response.data.results.flatMap((res) =>
+        if (response.success) {
+          const scraped = response.results.flatMap((res) =>
             res.servers.map((s, idx) => ({
               ...s,
               id: `scraped-${res.provider}-${idx}-${Math.random()}`,
