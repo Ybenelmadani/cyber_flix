@@ -226,21 +226,23 @@ export default function Player({
       </div>
 
       {/* Sources / Servers */}
-      <div className="flex flex-wrap gap-2">
-        {servers.map((server) => (
-          <button
-            key={server.id || server.url}
-            onClick={() => setActiveServer(server)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-              (activeSource?.id === server.id || activeSource?.url === server.url)
-                ? "bg-cyber-fuchsia text-white shadow-lg shadow-cyber-fuchsia/25"
-                : "bg-cyber-darker text-cyber-cyan/70 hover:bg-cyber-dark hover:text-white"
-            }`}
-          >
-            {server.name || server.quality || "Source"}
-          </button>
-        ))}
-      </div>
+      {servers.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {servers.map((server) => (
+            <button
+              key={server.id || server.url}
+              onClick={() => setActiveServer(server)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                (activeSource?.id === server.id || activeSource?.url === server.url)
+                  ? "bg-cyber-fuchsia text-white shadow-lg shadow-cyber-fuchsia/25"
+                  : "bg-cyber-darker text-cyber-cyan/70 hover:bg-cyber-dark hover:text-white"
+              }`}
+            >
+              {server.name || server.quality || "Source"}
+            </button>
+          ))}
+        </div>
+      )}
 
       {playbackError && (
         <div className="rounded-lg bg-red-500/10 p-4 text-sm text-red-500 border border-red-500/20">
