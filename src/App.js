@@ -1584,11 +1584,13 @@ export default function App() {
               <EpisodeDetail
                 show={selectedDetails || selectedItem}
                 episode={selectedEpisodeDetails}
+                seasonDetails={seasonDetails}
                 isLoading={isDetailsLoading}
                 labels={t.detail}
                 servers={servers}
                 activeServer={activeServer}
                 setActiveServer={handleServerChange}
+                onEpisodeSelect={handleEpisodeSelect}
                 onBack={() =>
                   openDetailById({
                     media: "tv",

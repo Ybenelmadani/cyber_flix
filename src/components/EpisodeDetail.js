@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Clock, Download, Globe, Play, Star, Users } from "lucide-react";
+import { Calendar, Clock, Download, Globe, Play, Star, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import Player from "./Player";
 import { triggerPopunderWithCap } from "../config/ads";
 
@@ -85,12 +85,14 @@ function PersonCard({ person, subtitle, meta }) {
 export default function EpisodeDetail({
   show,
   episode,
+  seasonDetails,
   isLoading,
   onBack,
   labels,
   servers = [],
   activeServer,
   setActiveServer,
+  onEpisodeSelect,
 }) {
   if (!show || !episode) return null;
 
@@ -223,12 +225,32 @@ export default function EpisodeDetail({
               episode.name ||
               `${text.episode || "Episode"} ${episode.episode_number}`;
 
+            const currentEpisodeNumber = episode.episode_number;
+            const hasNextEpisode =
+              seasonDetails &&
+              Array.isArray(seasonDetails.episodes) &&
+              seasonDetails.episodes.some((ep) => ep.episode_number === currentEpisodeNumber + 1);
+            const nextEpisodeNumber = currentEpisodeNumber + 1;
+
             return (
               <>
                 <section className="card-neon overflow-hidden p-5 sm:p-6">
-                <h3 className="mb-3 text-xl font-bold text-cyber-cyan">
-                  {text.watchNow || "Watch now"}
-                </h3>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-cyber-cyan">
+                    {text.watchNow || "Watch now"}
+                  </h3>
+                  {hasNextEpisode && (
+                    <button
+                      type="button"
+                      onClick={() => onEpisodeSelect && onEpisodeSelect(nextEpisodeNumber)}
+                      dir="ltr"
+                      className="group flex items-center gap-1 rounded-xl bg-cyber-fuchsia/15 border border-cyber-fuchsia/30 px-3.5 py-1.5 text-xs font-bold text-cyber-fuchsia hover:bg-cyber-fuchsia hover:text-white transition-all hover:scale-105 active:scale-95 shadow-md shadow-cyber-fuchsia/5"
+                    >
+                      <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+                      <span>الحلقه التاليه</span>
+                    </button>
+                  )}
+                </div>
 
                 <div className="-mx-5 sm:-mx-6">
                   {hasLegalStreams ? (
