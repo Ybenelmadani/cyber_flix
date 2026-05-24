@@ -1,5 +1,3 @@
-const GA_ID = process.env.REACT_APP_GA_MEASUREMENT_ID;
-
 const sendGA = (eventName, params = {}) => {
   if (typeof window === "undefined") {
     return;
@@ -16,4 +14,3 @@ export const trackPageView = (path) => {
 export const trackEvent = (name, params = {}) => {
   sendGA(name, params);
 };
-

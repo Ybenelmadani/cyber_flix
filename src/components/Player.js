@@ -2,32 +2,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 
-const unlockCountKey = "cyberflix_unlock_count";
-const unlockDateKey = "cyberflix_unlock_date";
-
-const todayKey = () => new Date().toISOString().slice(0, 10);
-
-const getTodayUnlockCount = () => {
-  try {
-    if (localStorage.getItem(unlockDateKey) !== todayKey()) {
-      localStorage.setItem(unlockDateKey, todayKey());
-      localStorage.setItem(unlockCountKey, "0");
-      return 0;
-    }
-
-    return parseInt(localStorage.getItem(unlockCountKey) || "0", 10);
-  } catch {
-    return 0;
-  }
-};
-
-const incrementTodayUnlockCount = () => {
-  try {
-    const current = getTodayUnlockCount();
-    localStorage.setItem(unlockCountKey, String(current + 1));
-  } catch {}
-};
-
 export default function Player({
   servers = [],
   activeServer,
@@ -37,19 +11,6 @@ export default function Player({
 }) {
   const videoRef = useRef(null);
   const [playbackError, setPlaybackError] = useState("");
-  // Désactivé temporairement : Toujours débloqué pour une UI propre
-  const [isUnlocked, setIsUnlocked] = useState(true);
-  /* Ancienne logique de pub
-  const [isUnlocked, setIsUnlocked] = useState(() => {
-    try {
-      const count = parseInt(localStorage.getItem("cyberflix_unlock_count") || "0");
-      return count >= 3; 
-    } catch {
-      return false;
-    }
-  });
-  */
-
   const activeSource = useMemo(() => {
     if (!Array.isArray(servers) || servers.length === 0) return null;
 

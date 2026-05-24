@@ -1,17 +1,10 @@
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
+import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense, lazy } from "react";
 import Header from "./components/Header";
 // import Hero from "./components/Hero";
 import MovieGrid from "./components/MovieGrid";
-import MovieDetail from "./components/MovieDetail";
-import EpisodeDetail from "./components/EpisodeDetail";
-import AdminStreamsPanel from "./components/AdminStreamsPanel";
 import Genres from "./components/Genres";
 import Footer from "./components/Footer";
-import AdBanner from "./components/AdBanner";
-import GlobalAdScripts from "./components/GlobalAdScripts";
-import AuthPanel from "./components/AuthPanel";
 import {
   authAPI,
   clearAuthToken,
@@ -24,6 +17,11 @@ import {
   tmdbAPI,
 } from "./services/api";
 import { trackEvent, trackPageView } from "./services/analytics";
+
+const MovieDetail = lazy(() => import("./components/MovieDetail"));
+const EpisodeDetail = lazy(() => import("./components/EpisodeDetail"));
+const AdminStreamsPanel = lazy(() => import("./components/AdminStreamsPanel"));
+const AuthPanel = lazy(() => import("./components/AuthPanel"));
 
 const LANG_ORDER = ["en", "fr", "ar"];
 const API_LANGUAGE_MAP = {
@@ -63,8 +61,6 @@ const detailPath = (media, id) => `/${media}/${id}`;
 const episodeDetailPath = (id, seasonNumber, episodeNumber) =>
   `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`;
 const isAdminPath = (path) => path === ADMIN_STREAMS_PATH;
-
-// Code pub supprimé complètement pour éviter les alertes de sécurité
 
 const setMeta = (name, content) => {
   let tag = document.querySelector(`meta[name="${name}"]`);
@@ -206,7 +202,6 @@ const TRANSLATIONS = {
       switchToLogin: "Already have an account? Login",
       error: "Unable to authenticate",
     },
-    ads: { label: "Advertisement" },
     footer: { rights: "(c) 2026 CYBERFLIX - All rights reserved" },
   },
   fr: {
@@ -342,7 +337,6 @@ const TRANSLATIONS = {
       switchToLogin: "Deja un compte ? Connecte-toi",
       error: "Impossible de s'authentifier",
     },
-    ads: { label: "Publicite" },
     footer: { rights: "(c) 2026 CYBERFLIX - Tous droits reserves" },
   },
   ar: {
@@ -448,7 +442,6 @@ const TRANSLATIONS = {
       switchToLogin: "لديك حساب؟ سجل الدخول",
       error: "تعذر تسجيل الدخول",
     },
-    ads: { label: "إعلان" },
     footer: { rights: "(c) 2026 CYBERFLIX - جميع الحقوق محفوظة" },
   },
 };
@@ -492,8 +485,6 @@ export default function App() {
   const currentCategories =
     mediaType === "movie" ? t.categories.movie : t.categories.tv;
   const isRTL = language === "ar";
-  // eslint-disable-next-line no-unused-vars
-  const hasPremium = authUser?.plan === "premium";
   const isAdminRoute = isAdminPath(routePath);
 
   const nextLanguageLabel = useMemo(() => {
@@ -906,7 +897,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, normalizeServers, resolvePlaybackServer, t.errors.details]
+    [apiLanguage, loadScrapedLinks, normalizeServers, resolvePlaybackServer, t.errors.details]
   );
 
   const handleEpisodeSelect = useCallback(
@@ -1013,7 +1004,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
+    [apiLanguage, loadScrapedLinks, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
   );
 
   const handleServerChange = useCallback(
@@ -1412,8 +1403,6 @@ export default function App() {
       className="min-h-screen bg-cyber-dark text-cyan-50 overflow-x-hidden"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <GlobalAdScripts hidden={hasPremium} />
-
       <Header
         searchQuery={searchQuery}
         setSearchQuery={handleHeaderSearchChange}
@@ -1446,6 +1435,7 @@ export default function App() {
       />
 
       <main className="mx-auto flex w-full max-w-7xl flex-col px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <Suspense fallback={<div className="flex justify-center p-12 text-cyber-cyan/50">Loading...</div>}>
         {isAdminRoute ? (
           <AdminStreamsPanel user={authUser} onBack={() => goHome(true)} />
         ) : !selectedItem ? (
@@ -1466,14 +1456,6 @@ export default function App() {
             />
             */}
 
-            <AdBanner 
-              hidden={hasPremium} 
-              label={t.ads?.label || "Sponsorisé"} 
-              type="image"
-              imageUrl="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop"
-              linkUrl="#"
-              fallbackText="Espace Publicitaire"
-            />
 
 
             {/* Section 3 cartes features — masquee car non essentielle
@@ -1572,8 +1554,6 @@ export default function App() {
           </>
         ) : (
           <>
-            {/* {!hasPremium ? <AdBanner label={t.ads.label} /> : null} */}
-
             {error ? (
               <div className="mb-4 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm">
                 {error}
@@ -1627,17 +1607,20 @@ export default function App() {
             )}
           </>
         )}
+        </Suspense>
       </main>
 
       <Footer text={t.footer.rights} />
 
       {showAuthPanel ? (
-        <AuthPanel
-          labels={t.auth}
-          onLogin={handleLogin}
-          onRegister={handleRegister}
-          onClose={() => setShowAuthPanel(false)}
-        />
+        <Suspense fallback={null}>
+          <AuthPanel
+            labels={t.auth}
+            onLogin={handleLogin}
+            onRegister={handleRegister}
+            onClose={() => setShowAuthPanel(false)}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

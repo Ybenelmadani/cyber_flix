@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Clock, Download, Globe, Play, Star, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ChevronLeft } from "lucide-react";
 import Player from "./Player";
 
 const FALLBACK_EPISODE_IMAGE =
@@ -164,7 +164,7 @@ export default function EpisodeDetail({
           <img
             src={buildImageUrl(episode.still_path, "w780", FALLBACK_EPISODE_IMAGE)}
             alt={title}
-            className="w-full rounded-[1.5rem] shadow-lg shadow-cyber-cyan/10"
+            className="w-full aspect-video object-cover rounded-[1.5rem] shadow-lg shadow-cyber-cyan/10"
           />
 
           <div className="mt-5 grid gap-3 text-sm text-cyber-cyan/75">

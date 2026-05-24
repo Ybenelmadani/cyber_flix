@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Clock, Download, Globe, Heart, Play, Star, TrendingUp, Users } from "lucide-react";
+import { Download } from "lucide-react";
 import Player from "./Player";
 import TitleReviews from "./TitleReviews";
 
@@ -322,7 +322,7 @@ export default function MovieDetail({
             <img
               src={posterUrl}
               alt={title}
-              className="w-full rounded-[1.5rem] shadow-lg shadow-cyber-cyan/10"
+              className="w-full aspect-[2/3] object-cover rounded-[1.5rem] shadow-lg shadow-cyber-cyan/10"
             />
           </div>
 
