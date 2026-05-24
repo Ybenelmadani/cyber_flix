@@ -2,7 +2,6 @@ import React from "react";
 import { Calendar, Clock, Download, Globe, Heart, Play, Star, TrendingUp, Users } from "lucide-react";
 import Player from "./Player";
 import TitleReviews from "./TitleReviews";
-import { triggerPopunderWithCap } from "../config/ads";
 
 const FALLBACK_POSTER =
   "data:image/svg+xml;charset=UTF-8," +
@@ -547,7 +546,6 @@ export default function MovieDetail({
                       href={server.url}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={triggerPopunderWithCap}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyber-cyan/10 py-2.5 text-xs font-bold text-cyber-cyan border border-cyber-cyan/20 transition-all hover:bg-cyber-fuchsia hover:text-white hover:border-cyber-fuchsia shadow-lg shadow-cyber-cyan/5"
                     >
                       <Download className="h-3.5 w-3.5" />

@@ -1,7 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
-import { openSponsorDirectLink } from "../config/ads";
 
 const unlockCountKey = "cyberflix_unlock_count";
 const unlockDateKey = "cyberflix_unlock_date";
@@ -142,49 +141,7 @@ export default function Player({
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {!isUnlocked ? (
-          <div className="absolute inset-0 z-[20] flex flex-col items-center justify-center bg-cyber-darker/90 backdrop-blur-sm">
-            <div 
-              className="absolute inset-0 opacity-30 grayscale"
-              style={{ 
-                backgroundImage: `url(${poster})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-              }}
-            />
-            <div className="relative z-10 flex flex-col items-center p-6 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-cyber-fuchsia/20 text-cyber-fuchsia shadow-lg shadow-cyber-fuchsia/20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              </div>
-              <h4 className="mb-2 text-xl font-bold text-white">Flux Protégé</h4>
-              <p className="mb-6 max-w-xs text-sm text-cyber-cyan/70">
-                Cliquez sur le bouton ci-dessous pour débloquer le lecteur Haute Définition.
-              </p>
-              
-              <button
-                onClick={() => {
-                  // Incrémenter le compteur
-                  try {
-                    const current = parseInt(localStorage.getItem("cyberflix_unlock_count") || "0");
-                    localStorage.setItem("cyberflix_unlock_count", (current + 1).toString());
-                  } catch (e) {}
 
-                  // Lien supprimé pour éviter l'alerte
-                  // window.open("...", "_blank");
-                  setIsUnlocked(true);
-                }}
-                className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-cyber-fuchsia px-8 py-4 text-lg font-black text-white shadow-xl shadow-cyber-fuchsia/30 transition-all hover:scale-105 active:scale-95"
-              >
-                <span className="relative z-10">DÉBLOQUER LE STREAMING</span>
-                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
-              </button>
-              
-              <p className="mt-4 text-[10px] uppercase tracking-widest text-cyber-cyan/40">
-                Sponsorisé par nos partenaires
-              </p>
-            </div>
-          </div>
-        ) : null}
 
         {resolvedSourceType === "embed" ? (
           <iframe
