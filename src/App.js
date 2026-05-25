@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import {
   authAPI,
   clearAuthToken,
+  freeProvidersAPI,
   getAuthToken,
   moviesAPI,
   paymentsAPI,
@@ -623,6 +624,39 @@ export default function App() {
     [normalizeServers]
   );
 
+  /**
+   * Load free embed providers (VidSrc, VidLink, 2Embed, Embed.su, etc.)
+   * These are prepended to the server list so they show first in the player tabs.
+   */
+  const loadFreeProviders = useCallback(
+    async ({ mediaType, tmdbId, seasonNumber, episodeNumber }) => {
+      try {
+        const options =
+          mediaType === "tv"
+            ? { season: seasonNumber, episode: episodeNumber }
+            : {};
+        const response = await freeProvidersAPI.getSources(
+          mediaType,
+          tmdbId,
+          options
+        );
+        if (response.success && Array.isArray(response.sources) && response.sources.length > 0) {
+          const normalized = normalizeServers(response.sources);
+          // Insert free providers BEFORE the existing servers (admin/codespecters come after)
+          setServers((prev) => {
+            // Avoid duplicates by URL
+            const existingUrls = new Set(prev.map((s) => s.url));
+            const fresh = normalized.filter((s) => !existingUrls.has(s.url));
+            return [...fresh, ...prev];
+          });
+        }
+      } catch (err) {
+        console.error("Free providers fetch error:", err);
+      }
+    },
+    [normalizeServers]
+  );
+
   const resolvePlaybackServer = useCallback(
     async ({
       media,
@@ -885,6 +919,14 @@ export default function App() {
           episodeNumber,
         });
 
+        // Load free providers for this specific episode
+        loadFreeProviders({
+          mediaType: "tv",
+          tmdbId: showId,
+          seasonNumber,
+          episodeNumber,
+        });
+
         trackEvent("open_episode_detail", {
           media_type: "tv",
           item_id: showId,
@@ -897,7 +939,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadScrapedLinks, normalizeServers, resolvePlaybackServer, t.errors.details]
+    [apiLanguage, loadFreeProviders, loadScrapedLinks, normalizeServers, resolvePlaybackServer, t.errors.details]
   );
 
   const handleEpisodeSelect = useCallback(
@@ -986,6 +1028,9 @@ export default function App() {
             year: new Date(data.release_date).getFullYear(),
             mediaType: "movie",
           });
+
+          // Load free providers (VidSrc, VidLink, 2Embed, etc.)
+          loadFreeProviders({ mediaType: "movie", tmdbId: id });
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
@@ -995,6 +1040,9 @@ export default function App() {
           if (firstSeason) {
             await loadSeason(id, firstSeason.season_number);
           }
+
+          // Load free providers for TV show (default will use season 1 ep 1 — updated on episode select)
+          loadFreeProviders({ mediaType: "tv", tmdbId: id, seasonNumber: 1, episodeNumber: 1 });
         }
 
         trackEvent("open_detail", { media_type: media, item_id: id });
@@ -1004,13 +1052,19 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadScrapedLinks, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
+    [apiLanguage, loadFreeProviders, loadScrapedLinks, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
   );
 
   const handleServerChange = useCallback(
     async (server) => {
       try {
         if (!selectedDetails?.id) return;
+
+        // Free providers & scraped sources already have a direct embed URL — use as-is
+        if (server?.isFreeProvider || server?.isScraped || server?.url) {
+          setActiveServer(server);
+          return;
+        }
 
         const sourceIndex = Number(server?.id || 0);
 

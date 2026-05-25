@@ -338,3 +338,22 @@ export const scraperAPI = {
     return request(`/scraper/links${query ? `?${query}` : ""}`);
   }
 };
+
+export const freeProvidersAPI = {
+  /**
+   * Get embed URLs from all free providers for a given TMDB ID.
+   * @param {string} mediaType - "movie" or "tv"
+   * @param {string|number} tmdbId
+   * @param {object} options - { season, episode } for TV
+   */
+  getSources: (mediaType, tmdbId, { season, episode } = {}) => {
+    const params = new URLSearchParams();
+    if (season !== undefined && season !== null) params.set("season", season);
+    if (episode !== undefined && episode !== null) params.set("episode", episode);
+    const query = params.toString();
+    return request(
+      `/free-providers/${encodeURIComponent(mediaType)}/${encodeURIComponent(tmdbId)}${query ? `?${query}` : ""}`
+    );
+  },
+};
+
