@@ -8,7 +8,6 @@ import Footer from "./components/Footer";
 import {
   authAPI,
   clearAuthToken,
-  freeProvidersAPI,
   getAuthToken,
   moviesAPI,
   paymentsAPI,
@@ -17,6 +16,7 @@ import {
   streamsAPI,
   tmdbAPI,
 } from "./services/api";
+import { getMovieProviders, getTvEpisodeProviders } from "./services/freeProviders";
 import { trackEvent, trackPageView } from "./services/analytics";
 
 const MovieDetail = lazy(() => import("./components/MovieDetail"));
@@ -626,32 +626,27 @@ export default function App() {
 
   /**
    * Load free embed providers (VidSrc, VidLink, 2Embed, Embed.su, etc.)
-   * These are prepended to the server list so they show first in the player tabs.
+   * Uses local URL generation — no backend needed, works on Vercel directly.
+   * Providers are prepended so they appear first in the player tabs.
    */
   const loadFreeProviders = useCallback(
-    async ({ mediaType, tmdbId, seasonNumber, episodeNumber }) => {
+    ({ mediaType, tmdbId, seasonNumber, episodeNumber }) => {
       try {
-        const options =
+        const rawSources =
           mediaType === "tv"
-            ? { season: seasonNumber, episode: episodeNumber }
-            : {};
-        const response = await freeProvidersAPI.getSources(
-          mediaType,
-          tmdbId,
-          options
-        );
-        if (response.success && Array.isArray(response.sources) && response.sources.length > 0) {
-          const normalized = normalizeServers(response.sources);
-          // Insert free providers BEFORE the existing servers (admin/codespecters come after)
-          setServers((prev) => {
-            // Avoid duplicates by URL
-            const existingUrls = new Set(prev.map((s) => s.url));
-            const fresh = normalized.filter((s) => !existingUrls.has(s.url));
-            return [...fresh, ...prev];
-          });
-        }
+            ? getTvEpisodeProviders(tmdbId, seasonNumber, episodeNumber)
+            : getMovieProviders(tmdbId);
+
+        const normalized = normalizeServers(rawSources);
+
+        setServers((prev) => {
+          // Avoid duplicates by URL
+          const existingUrls = new Set(prev.map((s) => s.url));
+          const fresh = normalized.filter((s) => !existingUrls.has(s.url));
+          return [...fresh, ...prev];
+        });
       } catch (err) {
-        console.error("Free providers fetch error:", err);
+        console.error("Free providers error:", err);
       }
     },
     [normalizeServers]
@@ -927,6 +922,13 @@ export default function App() {
           episodeNumber,
         });
 
+        // If Codespecters has no stream for this episode, default to first free provider
+        setActiveServer((prev) => {
+          if (prev) return prev;
+          const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
+          return fp[0] || null;
+        });
+
         trackEvent("open_episode_detail", {
           media_type: "tv",
           item_id: showId,
@@ -1022,15 +1024,15 @@ export default function App() {
             setActiveServer(null);
           }
 
-          // Trigger Scraper for Movie
-          loadScrapedLinks({
-            title: data.title || data.original_title,
-            year: new Date(data.release_date).getFullYear(),
-            mediaType: "movie",
-          });
-
-          // Load free providers (VidSrc, VidLink, 2Embed, etc.)
+          // Load free providers (VidSrc, VidLink, 2Embed, etc.) — shown first
           loadFreeProviders({ mediaType: "movie", tmdbId: id });
+
+          // If no active server from Codespecters, default to first free provider
+          setActiveServer((prev) => {
+            if (prev) return prev;
+            const fp = getMovieProviders(id);
+            return fp[0] || null;
+          });
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
@@ -1052,7 +1054,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadFreeProviders, loadScrapedLinks, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
+    [apiLanguage, loadFreeProviders, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
   );
 
   const handleServerChange = useCallback(
