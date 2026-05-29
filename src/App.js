@@ -883,26 +883,8 @@ export default function App() {
             streamResponse?.stream?.sources || []
           );
           setServers(episodeServers);
-
-          const firstLegalServer = episodeServers.find(
-            (server) => Boolean(server.isLegal)
-          );
-
-          if (firstLegalServer) {
-            const playbackServer = await resolvePlaybackServer({
-              media: "tv",
-              tmdbId: showId,
-              seasonNumber,
-              episodeNumber,
-              sourceIndex: Number(firstLegalServer.id || 0),
-            });
-            setActiveServer(playbackServer);
-          } else {
-            setActiveServer(null);
-          }
         } catch {
           setServers([]);
-          setActiveServer(null);
         }
 
         // Trigger Scraper for Episode
@@ -922,12 +904,9 @@ export default function App() {
           episodeNumber,
         });
 
-        // If Codespecters has no stream for this episode, default to first free provider
-        setActiveServer((prev) => {
-          if (prev) return prev;
-          const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
-          return fp[0] || null;
-        });
+        // Always default active server to the first free provider (VidSrc) so Arabic subtitles load automatically!
+        const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
+        setActiveServer(fp[0] || null);
 
         trackEvent("open_episode_detail", {
           media_type: "tv",
@@ -941,7 +920,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadFreeProviders, loadScrapedLinks, normalizeServers, resolvePlaybackServer, t.errors.details]
+    [apiLanguage, loadFreeProviders, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
   const handleEpisodeSelect = useCallback(
@@ -1004,35 +983,17 @@ export default function App() {
             );
             setServers(movieServers);
             setSelectedEpisode(null);
-
-            const firstLegalServer = movieServers.find(
-              (server) => Boolean(server.isLegal)
-            );
-
-            if (firstLegalServer) {
-              const playbackServer = await resolvePlaybackServer({
-                media: "movie",
-                tmdbId: id,
-                sourceIndex: Number(firstLegalServer.id || 0),
-              });
-              setActiveServer(playbackServer);
-            } else {
-              setActiveServer(null);
-            }
           } catch {
             setServers([]);
-            setActiveServer(null);
+            setSelectedEpisode(null);
           }
 
           // Load free providers (VidSrc, VidLink, 2Embed, etc.) — shown first
           loadFreeProviders({ mediaType: "movie", tmdbId: id });
 
-          // If no active server from Codespecters, default to first free provider
-          setActiveServer((prev) => {
-            if (prev) return prev;
-            const fp = getMovieProviders(id);
-            return fp[0] || null;
-          });
+          // Always default active server to the first free provider (VidSrc) so Arabic subtitles load automatically!
+          const fp = getMovieProviders(id);
+          setActiveServer(fp[0] || null);
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
@@ -1054,7 +1015,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadFreeProviders, loadSeason, normalizeServers, resolvePlaybackServer, t.errors.details]
+    [apiLanguage, loadFreeProviders, loadSeason, normalizeServers, t.errors.details]
   );
 
   const handleServerChange = useCallback(

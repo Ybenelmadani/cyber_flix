@@ -6,20 +6,20 @@
 
 const FREE_PROVIDERS = [
   {
+    id: "vidsrc",
+    name: "VidSrc",
+    provider: "vidsrc",
+    quality: "HD",
+    movie: (id) => `https://vidsrc.to/embed/movie/${id}`,
+    tv: (id, s, e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`,
+  },
+  {
     id: "vidlink",
     name: "VidLink",
     provider: "vidlink",
     quality: "HD",
     movie: (id) => `https://vidlink.pro/movie/${id}`,
     tv: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}`,
-  },
-  {
-    id: "vidsrc",
-    name: "VidSrc",
-    provider: "vidsrc",
-    quality: "HD",
-    movie: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}`,
-    tv: (id, s, e) => `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${s}&episode=${e}`,
   },
   {
     id: "2embed",

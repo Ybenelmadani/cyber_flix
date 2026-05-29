@@ -201,6 +201,7 @@ export default function Player({
             allowFullScreen
             referrerPolicy="no-referrer"
             scrolling="no"
+            sandbox="allow-scripts allow-same-origin allow-forms"
             onLoad={() => setIsLoading(false)}
           />
         ) : (
