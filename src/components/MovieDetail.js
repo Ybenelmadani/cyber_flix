@@ -230,12 +230,8 @@ export default function MovieDetail({
   ];
 
   const hasStreams = Array.isArray(servers) && servers.length > 0;
-  const legalServers = hasStreams
-    ? servers.filter((server) => Boolean(server?.isLegal))
-    : [];
-  const hasLegalStreams = legalServers.length > 0;
   const downloadServers = hasStreams
-    ? servers.filter((server) => !server?.isLegal)
+    ? servers.filter((server) => !server?.isLegal && !server?.isFreeProvider && server?.type !== "embed")
     : [];
 
   return (
@@ -482,9 +478,9 @@ export default function MovieDetail({
 
             {/* -mx rend le player plein-largeur sur mobile */}
             <div className="-mx-5 sm:-mx-6">
-              {hasLegalStreams ? (
+              {hasStreams ? (
                 <Player
-                  servers={legalServers}
+                  servers={servers}
                   activeServer={activeServer}
                   setActiveServer={setActiveServer}
                   poster={backdropUrl}

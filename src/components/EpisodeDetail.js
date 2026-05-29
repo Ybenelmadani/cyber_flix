@@ -214,11 +214,9 @@ export default function EpisodeDetail({
             </section>
           ) : null}
 
-          {/* Watch Now — après le trailer, plein-largeur mobile */}
           {(() => {
-            const legalServers = servers.filter((s) => Boolean(s.isLegal));
-            const downloadServers = servers.filter((s) => !s.isLegal);
-            const hasLegalStreams = legalServers.length > 0;
+            const hasStreams = Array.isArray(servers) && servers.length > 0;
+            const downloadServers = servers.filter((s) => !s.isLegal && !s.isFreeProvider && s.type !== "embed");
             const posterUrl = stillUrl;
             const epTitle =
               episode.name ||
@@ -252,9 +250,9 @@ export default function EpisodeDetail({
                 </div>
 
                 <div className="-mx-5 sm:-mx-6">
-                  {hasLegalStreams ? (
+                  {hasStreams ? (
                     <Player
-                      servers={legalServers}
+                      servers={servers}
                       activeServer={activeServer}
                       setActiveServer={setActiveServer}
                       poster={posterUrl}
