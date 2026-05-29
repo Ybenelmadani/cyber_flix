@@ -120,6 +120,20 @@ export default function Player({
     setTimeout(() => setIsLoading(false), 1200);
   };
 
+  const isCodespecters = useMemo(() => {
+    if (!activeSource) return false;
+    const provider = String(activeSource.provider || "").toLowerCase();
+    const name = String(activeSource.name || "").toLowerCase();
+    const id = String(activeSource.id || "").toLowerCase();
+    return provider === "codespecters" || name.includes("codespecters") || id.includes("codespecters");
+  }, [activeSource]);
+
+  const sandboxAttribute = useMemo(() => {
+    if (!activeSource) return undefined;
+    if (isCodespecters) return undefined;
+    return "allow-scripts allow-same-origin allow-forms";
+  }, [activeSource, isCodespecters]);
+
   const providerMeta = getProviderMeta(activeSource?.provider);
 
   return (
@@ -201,7 +215,7 @@ export default function Player({
             allowFullScreen
             referrerPolicy="no-referrer"
             scrolling="no"
-            sandbox="allow-scripts allow-same-origin allow-forms"
+            sandbox={sandboxAttribute}
             onLoad={() => setIsLoading(false)}
           />
         ) : (
