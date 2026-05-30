@@ -63,6 +63,51 @@ const episodeDetailPath = (id, seasonNumber, episodeNumber) =>
   `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`;
 const isAdminPath = (path) => path === ADMIN_STREAMS_PATH;
 
+const getServerQualityScore = (quality) => {
+  const value = String(quality || "").toLowerCase();
+
+  if (value.includes("4k") || value.includes("2160")) return 4000;
+  if (value.includes("1440")) return 1440;
+  if (value.includes("1080")) return 1080;
+  if (value.includes("720")) return 720;
+  if (value.includes("480")) return 480;
+  if (value.includes("hd")) return 700;
+  if (value.includes("auto")) return 650;
+  return 0;
+};
+
+const getServerPriority = (server = {}) => {
+  const hasDirectUrl = Boolean(String(server.url || "").trim());
+  const provider = String(server.provider || "").toLowerCase();
+
+  let score = getServerQualityScore(server.quality);
+
+  if (server.isScraped) score += 3000;
+  if (server.isFreeProvider) score += 2000;
+  if (hasDirectUrl) score += 1500;
+  if (server.type === "embed") score += 200;
+  if (provider === "codespecters") score -= 500;
+
+  return score;
+};
+
+const sortServersForPlayback = (servers = []) =>
+  [...servers].sort((left, right) => getServerPriority(right) - getServerPriority(left));
+
+const doesServerMatch = (server, candidate) => {
+  if (!server || !candidate) return false;
+
+  const serverId = String(server.id || "");
+  const candidateId = String(candidate.id || "");
+  const serverUrl = String(server.url || "");
+  const candidateUrl = String(candidate.url || "");
+
+  return (
+    (serverId && candidateId && serverId === candidateId) ||
+    (serverUrl && candidateUrl && serverUrl === candidateUrl)
+  );
+};
+
 const setMeta = (name, content) => {
   let tag = document.querySelector(`meta[name="${name}"]`);
   if (!tag) {
@@ -576,21 +621,25 @@ export default function App() {
   const clearError = () => setError("");
 
   const normalizeServers = useCallback((sources = []) => {
-    return sources.map((source, index) => ({
-      id: source.id ?? String(index),
-      name:
-        source.name ||
-        `${source.quality || "Server"}${
-          source.language ? ` - ${source.language}` : ""
-        }`,
-      type: source.type || "hls",
-      quality: source.quality || null,
-      language: source.language || null,
-      isPremium: Boolean(source.isPremium),
-      isLegal: Boolean(source.isLegal),
-      provider: source.provider || "custom",
-      url: source.url || "",
-    }));
+    return sortServersForPlayback(
+      sources.map((source, index) => ({
+        id: source.id ?? String(index),
+        name:
+          source.name ||
+          `${source.quality || "Server"}${
+            source.language ? ` - ${source.language}` : ""
+          }`,
+        type: source.type || "hls",
+        quality: source.quality || null,
+        language: source.language || null,
+        isPremium: Boolean(source.isPremium),
+        isLegal: Boolean(source.isLegal),
+        isScraped: Boolean(source.isScraped),
+        isFreeProvider: Boolean(source.isFreeProvider),
+        provider: source.provider || "custom",
+        url: source.url || "",
+      }))
+    );
   }, []);
 
   const loadScrapedLinks = useCallback(
@@ -615,7 +664,7 @@ export default function App() {
           );
           
           const normalized = normalizeServers(scraped);
-          setServers((prev) => [...prev, ...normalized]);
+          setServers((prev) => sortServersForPlayback([...prev, ...normalized]));
         }
       } catch (err) {
         console.error("Scraper fetch error:", err);
@@ -643,7 +692,7 @@ export default function App() {
           // Avoid duplicates by URL
           const existingUrls = new Set(prev.map((s) => s.url));
           const fresh = normalized.filter((s) => !existingUrls.has(s.url));
-          return [...fresh, ...prev];
+          return sortServersForPlayback([...fresh, ...prev]);
         });
       } catch (err) {
         console.error("Free providers error:", err);
@@ -1060,6 +1109,28 @@ export default function App() {
       t.errors.details,
     ]
   );
+
+  useEffect(() => {
+    if (!Array.isArray(servers) || servers.length === 0 || !selectedDetails?.id) {
+      return;
+    }
+
+    const activeExistsInList = activeServer
+      ? servers.some((server) => doesServerMatch(server, activeServer))
+      : false;
+    const activeHasPlayableUrl = Boolean(String(activeServer?.url || "").trim());
+
+    if (activeExistsInList && activeHasPlayableUrl) {
+      return;
+    }
+
+    const preferredServer = servers[0];
+    if (!preferredServer) {
+      return;
+    }
+
+    handleServerChange(preferredServer);
+  }, [activeServer, handleServerChange, selectedDetails, servers]);
 
   const goHome = useCallback((pushState = true) => {
     if (pushState) {

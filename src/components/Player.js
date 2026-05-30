@@ -92,8 +92,27 @@ export default function Player({
     return "video";
   }, [activeSource]);
 
+  const hasPlayableUrl = Boolean(String(activeSource?.url || "").trim());
+
   useEffect(() => {
-    if (!videoRef.current || !activeSource || resolvedSourceType !== "video") return;
+    if (!activeSource) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (!hasPlayableUrl) {
+      setIsLoading(true);
+      setPlaybackError("");
+    }
+  }, [activeSource, hasPlayableUrl]);
+
+  useEffect(() => {
+    if (
+      !videoRef.current ||
+      !activeSource ||
+      !hasPlayableUrl ||
+      resolvedSourceType !== "video"
+    ) return;
 
     const video = videoRef.current;
     const isHls = activeSource.url?.toLowerCase().endsWith(".m3u8");
@@ -122,14 +141,13 @@ export default function Player({
         setIsLoading(false);
       };
     }
-  }, [activeSource, resolvedSourceType]);
+  }, [activeSource, hasPlayableUrl, resolvedSourceType]);
 
   // Change server handler — show loading shimmer on iframe change
   const handleServerSelect = (server) => {
     setIsLoading(true);
     setPlaybackError("");
     setActiveServer(server);
-    setTimeout(() => setIsLoading(false), 1200);
   };
 
   const isCodespecters = useMemo(() => {
@@ -217,7 +235,16 @@ export default function Player({
           </div>
         )}
 
-        {resolvedSourceType === "embed" ? (
+        {!hasPlayableUrl ? (
+          <div className="player-empty-state">
+            <div className="player-empty-card">
+              <p className="player-empty-title">Resolving stream...</p>
+              <p className="player-empty-copy">
+                Fetching the selected server playback URL.
+              </p>
+            </div>
+          </div>
+        ) : resolvedSourceType === "embed" ? (
           <iframe
             key={activeSource?.url}
             title={title || activeSource?.name || "Embedded stream"}
@@ -357,6 +384,43 @@ export default function Player({
           inset: 0;
           width: 100%;
           height: 100%;
+        }
+
+        .player-empty-state {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          background:
+            radial-gradient(circle at top, rgba(34,211,238,0.14), transparent 35%),
+            linear-gradient(135deg, #050816 0%, #09111f 100%);
+        }
+
+        .player-empty-card {
+          max-width: 320px;
+          border: 1px solid rgba(34,211,238,0.16);
+          background: rgba(8, 15, 30, 0.82);
+          border-radius: 18px;
+          padding: 18px 20px;
+          text-align: center;
+          box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+        }
+
+        .player-empty-title {
+          margin: 0;
+          color: #e0f2fe;
+          font-size: 15px;
+          font-weight: 700;
+        }
+
+        .player-empty-copy {
+          margin: 8px 0 0;
+          color: rgba(186, 230, 253, 0.72);
+          font-size: 12px;
+          line-height: 1.6;
         }
 
         /* ── Loading Shimmer ── */
