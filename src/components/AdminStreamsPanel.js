@@ -17,10 +17,6 @@ const emptyForm = {
   sourceType: "hls",
   sourceQuality: "auto",
   sourceLanguage: "VO",
-  subtitleArabicLabel: "Arabic",
-  subtitleArabicUrl: "",
-  subtitleArabicKind: "subtitles",
-  subtitleArabicDefault: true,
   isPremium: false,
   isLegal: false,
 };
@@ -49,58 +45,33 @@ const toFormState = (stream) => {
     sourceType: source?.type || "hls",
     sourceQuality: source?.quality || "auto",
     sourceLanguage: source?.language || "VO",
-    subtitleArabicLabel: source?.subtitles?.[0]?.label || "Arabic",
-    subtitleArabicUrl: source?.subtitles?.[0]?.url || "",
-    subtitleArabicKind: source?.subtitles?.[0]?.kind || "subtitles",
-    subtitleArabicDefault:
-      source?.subtitles?.[0]?.isDefault !== undefined
-        ? Boolean(source.subtitles[0].isDefault)
-        : true,
     isPremium: Boolean(source?.isPremium),
     isLegal: Boolean(source?.isLegal),
   };
 };
 
-const buildPayload = (form) => {
-  const subtitleArabicUrl = String(form.subtitleArabicUrl || "").trim();
-
-  return {
-    tmdbId: String(form.tmdbId).trim(),
-    mediaType: form.mediaType,
-    seasonNumber: form.mediaType === "tv" ? Number(form.seasonNumber) : null,
-    episodeNumber: form.mediaType === "tv" ? Number(form.episodeNumber) : null,
-    title: String(form.title).trim(),
-    poster: String(form.poster || "").trim(),
-    sources: [
-      {
-        name: String(form.sourceName || "").trim(),
-        provider: String(form.sourceProvider || "custom").trim(),
-        playbackId: String(form.sourcePlaybackId || "").trim(),
-        url: String(form.sourceUrl || "").trim(),
-        path: String(form.sourcePath || "").trim(),
-        type: form.sourceType || "hls",
-        quality: String(form.sourceQuality || "").trim(),
-        language: String(form.sourceLanguage || "").trim(),
-        subtitles: subtitleArabicUrl
-          ? [
-              {
-                label: String(form.subtitleArabicLabel || "Arabic").trim(),
-                language: "ar",
-                url: subtitleArabicUrl,
-                kind:
-                  form.subtitleArabicKind === "captions"
-                    ? "captions"
-                    : "subtitles",
-                isDefault: Boolean(form.subtitleArabicDefault),
-              },
-            ]
-          : [],
-        isPremium: Boolean(form.isPremium),
-        isLegal: Boolean(form.isLegal),
-      },
-    ],
-  };
-};
+const buildPayload = (form) => ({
+  tmdbId: String(form.tmdbId).trim(),
+  mediaType: form.mediaType,
+  seasonNumber: form.mediaType === "tv" ? Number(form.seasonNumber) : null,
+  episodeNumber: form.mediaType === "tv" ? Number(form.episodeNumber) : null,
+  title: String(form.title).trim(),
+  poster: String(form.poster || "").trim(),
+  sources: [
+    {
+      name: String(form.sourceName || "").trim(),
+      provider: String(form.sourceProvider || "custom").trim(),
+      playbackId: String(form.sourcePlaybackId || "").trim(),
+      url: String(form.sourceUrl || "").trim(),
+      path: String(form.sourcePath || "").trim(),
+      type: form.sourceType || "hls",
+      quality: String(form.sourceQuality || "").trim(),
+      language: String(form.sourceLanguage || "").trim(),
+      isPremium: Boolean(form.isPremium),
+      isLegal: Boolean(form.isLegal),
+    },
+  ],
+});
 
 const externalEmbedProviders = new Set(["codespecters", "embed"]);
 
@@ -427,61 +398,6 @@ export default function AdminStreamsPanel({ user, onBack }) {
               />
             </div>
 
-            <div className="rounded-2xl border border-cyber-cyan/15 bg-cyber-dark/35 p-4">
-              <p className="mb-3 text-sm font-semibold text-cyber-cyan">
-                Arabic subtitles
-              </p>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  type="text"
-                  value={form.subtitleArabicLabel}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, subtitleArabicLabel: e.target.value }))
-                  }
-                  placeholder="Arabic"
-                  className="input-cyber w-full"
-                />
-
-                <input
-                  type="text"
-                  value={form.subtitleArabicUrl}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, subtitleArabicUrl: e.target.value }))
-                  }
-                  placeholder="https://example.com/subtitles-ar.vtt"
-                  className="input-cyber w-full"
-                />
-              </div>
-
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <select
-                  value={form.subtitleArabicKind}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, subtitleArabicKind: e.target.value }))
-                  }
-                  className="input-cyber w-full"
-                >
-                  <option value="subtitles">subtitles</option>
-                  <option value="captions">captions</option>
-                </select>
-
-                <label className="flex items-center gap-2 text-sm text-cyber-cyan/80">
-                  <input
-                    type="checkbox"
-                    checked={form.subtitleArabicDefault}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        subtitleArabicDefault: e.target.checked,
-                      }))
-                    }
-                  />
-                  Auto-enable Arabic track
-                </label>
-              </div>
-            </div>
-
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="flex items-center gap-2 text-sm text-cyber-cyan/80">
                 <input
@@ -593,9 +509,6 @@ export default function AdminStreamsPanel({ user, onBack }) {
                         </p>
                         <p className="text-sm text-cyber-cyan/70 break-all">
                           Path: {source.path || "No path"}
-                        </p>
-                        <p className="text-sm text-cyber-cyan/70 break-all">
-                          Arabic subtitles: {source.subtitles?.[0]?.url || "No subtitle track"}
                         </p>
                         <p className="text-sm text-cyber-cyan/70 break-all">
                           Legal: {source.isLegal ? "yes" : "no"}
