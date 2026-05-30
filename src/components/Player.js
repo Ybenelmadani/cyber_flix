@@ -45,6 +45,11 @@ export default function Player({
   const [playbackError, setPlaybackError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const subtitleTracks = useMemo(
+    () => (Array.isArray(activeSource?.subtitles) ? activeSource.subtitles : []),
+    [activeSource]
+  );
+
   const activeSource = useMemo(() => {
     if (!Array.isArray(servers) || servers.length === 0) return null;
 
@@ -142,6 +147,27 @@ export default function Player({
       };
     }
   }, [activeSource, hasPlayableUrl, resolvedSourceType]);
+
+  useEffect(() => {
+    if (!videoRef.current || resolvedSourceType !== "video") {
+      return;
+    }
+
+    const video = videoRef.current;
+    const allTracks = Array.from(video.textTracks || []);
+    if (!allTracks.length) {
+      return;
+    }
+
+    const preferredIndex = subtitleTracks.findIndex((track) => {
+      const language = String(track?.language || "").toLowerCase();
+      return Boolean(track?.isDefault) || language === "ar" || language.startsWith("ar-");
+    });
+
+    allTracks.forEach((track, index) => {
+      track.mode = index === preferredIndex ? "showing" : "disabled";
+    });
+  }, [resolvedSourceType, subtitleTracks]);
 
   // Change server handler — show loading shimmer on iframe change
   const handleServerSelect = (server) => {
@@ -259,6 +285,7 @@ export default function Player({
           />
         ) : (
           <video
+            key={`${activeSource?.url || "video"}-${subtitleTracks.map((track) => track.url).join("|")}`}
             ref={videoRef}
             controls
             playsInline
@@ -266,6 +293,16 @@ export default function Player({
             className="player-video"
             preload="metadata"
           >
+            {subtitleTracks.map((track) => (
+              <track
+                key={track.url}
+                src={track.url}
+                kind={track.kind || "subtitles"}
+                srcLang={track.language || "ar"}
+                label={track.label || track.language || "Subtitle"}
+                default={Boolean(track.isDefault)}
+              />
+            ))}
             Your browser does not support video playback.
           </video>
         )}
