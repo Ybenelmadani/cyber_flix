@@ -1269,6 +1269,40 @@ export default function App() {
   }, [loadAuthUser]);
 
   useEffect(() => {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const clearLegacyServiceWorkers = async () => {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+
+        await Promise.all(
+          registrations.map(async (registration) => {
+            const scriptUrl = registration.active?.scriptURL ||
+              registration.waiting?.scriptURL ||
+              registration.installing?.scriptURL ||
+              "";
+
+            if (
+              scriptUrl.includes("/sw.js") ||
+              scriptUrl.includes("/service-worker.js") ||
+              scriptUrl.includes("3nbf4.com") ||
+              scriptUrl.includes("5gvci.com")
+            ) {
+              await registration.unregister();
+            }
+          })
+        );
+      } catch (error) {
+        console.warn("Unable to clear legacy service workers", error);
+      }
+    };
+
+    clearLegacyServiceWorkers();
+  }, []);
+
+  useEffect(() => {
     if (routePath !== "/") return;
 
     setSelectedGenre(null);
