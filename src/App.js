@@ -1061,6 +1061,27 @@ export default function App() {
     ]
   );
 
+  useEffect(() => {
+    if (!selectedDetails?.id || !Array.isArray(servers) || servers.length === 0) {
+      return;
+    }
+
+    const activeHasPlayableUrl = Boolean(String(activeServer?.url || "").trim());
+    if (activeHasPlayableUrl) {
+      return;
+    }
+
+    const preferredServer =
+      servers.find((server) => server?.isFreeProvider || server?.isScraped || String(server?.url || "").trim()) ||
+      servers[0];
+
+    if (!preferredServer) {
+      return;
+    }
+
+    handleServerChange(preferredServer);
+  }, [activeServer, handleServerChange, selectedDetails, servers]);
+
   const goHome = useCallback((pushState = true) => {
     if (pushState) {
       window.history.pushState({}, "", "/");

@@ -92,8 +92,22 @@ export default function Player({
     return "video";
   }, [activeSource]);
 
+  const hasPlayableUrl = Boolean(String(activeSource?.url || "").trim());
+
   useEffect(() => {
-    if (!videoRef.current || !activeSource || resolvedSourceType !== "video") return;
+    if (!activeSource) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (!hasPlayableUrl) {
+      setPlaybackError("");
+      setIsLoading(true);
+    }
+  }, [activeSource, hasPlayableUrl]);
+
+  useEffect(() => {
+    if (!videoRef.current || !activeSource || !hasPlayableUrl || resolvedSourceType !== "video") return;
 
     const video = videoRef.current;
     const isHls = activeSource.url?.toLowerCase().endsWith(".m3u8");
@@ -122,14 +136,13 @@ export default function Player({
         setIsLoading(false);
       };
     }
-  }, [activeSource, resolvedSourceType]);
+  }, [activeSource, hasPlayableUrl, resolvedSourceType]);
 
   // Change server handler — show loading shimmer on iframe change
   const handleServerSelect = (server) => {
     setIsLoading(true);
     setPlaybackError("");
     setActiveServer(server);
-    setTimeout(() => setIsLoading(false), 1200);
   };
 
   const isCodespecters = useMemo(() => {
@@ -217,7 +230,7 @@ export default function Player({
           </div>
         )}
 
-        {resolvedSourceType === "embed" ? (
+        {hasPlayableUrl && resolvedSourceType === "embed" ? (
           <iframe
             key={activeSource?.url}
             title={title || activeSource?.name || "Embedded stream"}
@@ -230,7 +243,7 @@ export default function Player({
             sandbox={sandboxAttribute}
             onLoad={() => setIsLoading(false)}
           />
-        ) : (
+        ) : hasPlayableUrl ? (
           <video
             ref={videoRef}
             controls
@@ -241,7 +254,7 @@ export default function Player({
           >
             Your browser does not support video playback.
           </video>
-        )}
+        ) : null}
       </div>
 
       {/* Playback error */}
