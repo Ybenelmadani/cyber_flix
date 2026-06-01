@@ -159,8 +159,6 @@ export default function Player({
     return "allow-scripts allow-same-origin allow-forms";
   }, [activeSource, isCodespecters]);
 
-  const providerMeta = getProviderMeta(activeSource?.provider);
-
   return (
     <div className="egydead-player">
       {/* ── Server Tabs (EgyDead style) ── */}
@@ -217,16 +215,6 @@ export default function Player({
               </svg>
             </div>
             <p style={{ color: "#22d3ee", marginTop: 12, fontSize: 13, opacity: 0.7 }}>Chargement du serveur…</p>
-          </div>
-        )}
-
-        {/* Current provider badge */}
-        {activeSource && !isLoading && (
-          <div
-            className="player-provider-badge"
-            style={{ background: providerMeta.color }}
-          >
-            {providerMeta.label}
           </div>
         )}
 
