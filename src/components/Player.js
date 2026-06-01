@@ -164,12 +164,6 @@ export default function Player({
       {/* ── Server Tabs (EgyDead style) ── */}
       {servers.length > 0 && (
         <div className="server-tabs-bar">
-          <span className="server-tabs-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }}>
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-            Serveurs
-          </span>
           <div className="server-tabs-list">
             {servers.map((server) => {
               const meta = getProviderMeta(server.provider);
@@ -194,9 +188,6 @@ export default function Player({
                 >
                   <span className="server-tab-dot" style={{ background: isActive ? "#fff" : meta.color }} />
                   {meta.label}
-                  {server.quality && (
-                    <span className="server-tab-quality">{server.quality}</span>
-                  )}
                 </button>
               );
             })}
@@ -279,18 +270,6 @@ export default function Player({
           background: linear-gradient(135deg, #0d1117 0%, #131820 100%);
           border-bottom: 1px solid rgba(255,255,255,0.06);
           flex-wrap: wrap;
-        }
-
-        .server-tabs-label {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.35);
-          white-space: nowrap;
-          padding-right: 6px;
-          border-right: 1px solid rgba(255,255,255,0.1);
-          margin-right: 4px;
         }
 
         .server-tabs-list {
