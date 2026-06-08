@@ -594,14 +594,15 @@ export default function App() {
   }, []);
 
   const loadScrapedLinks = useCallback(
-    async ({ title, year, mediaType, seasonNumber, episodeNumber }) => {
+    async ({ title, year, mediaType, seasonNumber, episodeNumber, tmdbId }) => {
       try {
         const response = await scraperAPI.getLinks({
           title,
           year,
           mediaType,
           season: seasonNumber,
-          episode: episodeNumber
+          episode: episodeNumber,
+          tmdbId
         });
         
         if (response.success) {
@@ -872,6 +873,7 @@ export default function App() {
         setSelectedEpisodeDetails(episodeDetails);
         setSeasonDetails(season);
 
+        let episodeServers = [];
         // Load episode stream sources
         try {
           const streamResponse = await streamsAPI.getEpisodeStream(
@@ -879,7 +881,7 @@ export default function App() {
             seasonNumber,
             episodeNumber
           );
-          const episodeServers = normalizeServers(
+          episodeServers = normalizeServers(
             streamResponse?.stream?.sources || []
           );
           setServers(episodeServers);
@@ -894,6 +896,7 @@ export default function App() {
           mediaType: "tv",
           seasonNumber,
           episodeNumber,
+          tmdbId: showId,
         });
 
         // Load free providers for this specific episode
@@ -904,9 +907,13 @@ export default function App() {
           episodeNumber,
         });
 
-        // Always default active server to the first free provider (VidSrc) so Arabic subtitles load automatically!
+        const codespectersServer = episodeServers.find(
+          (s) =>
+            s.provider === "codespecters" ||
+            String(s.name || "").toLowerCase().includes("codespecters")
+        );
         const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
-        setActiveServer(fp[0] || null);
+        setActiveServer(codespectersServer || fp[0] || null);
 
         trackEvent("open_episode_detail", {
           media_type: "tv",
@@ -976,9 +983,10 @@ export default function App() {
         setWatchProviders(providers?.results || {});
 
         if (media === "movie") {
+          let movieServers = [];
           try {
             const streamResponse = await streamsAPI.getMovieStream(id);
-            const movieServers = normalizeServers(
+            movieServers = normalizeServers(
               streamResponse?.stream?.sources || []
             );
             setServers(movieServers);
@@ -988,12 +996,24 @@ export default function App() {
             setSelectedEpisode(null);
           }
 
+          // Trigger Scraper for Movie
+          loadScrapedLinks({
+            title: data.title || data.original_title,
+            year: new Date(data.release_date).getFullYear(),
+            mediaType: "movie",
+            tmdbId: id,
+          });
+
           // Load free providers (VidSrc, VidLink, 2Embed, etc.) — shown first
           loadFreeProviders({ mediaType: "movie", tmdbId: id });
 
-          // Always default active server to the first free provider (VidSrc) so Arabic subtitles load automatically!
+          const codespectersServer = movieServers.find(
+            (s) =>
+              s.provider === "codespecters" ||
+              String(s.name || "").toLowerCase().includes("codespecters")
+          );
           const fp = getMovieProviders(id);
-          setActiveServer(fp[0] || null);
+          setActiveServer(codespectersServer || fp[0] || null);
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
@@ -1071,7 +1091,15 @@ export default function App() {
       return;
     }
 
+    const codespectersServer = servers.find(
+      (s) =>
+        s.provider === "codespecters" ||
+        String(s.name || "").toLowerCase().includes("codespecters") ||
+        String(s.id || "").toLowerCase().includes("codespecters")
+    );
+
     const preferredServer =
+      codespectersServer ||
       servers.find((server) => server?.isFreeProvider || server?.isScraped || String(server?.url || "").trim()) ||
       servers[0];
 

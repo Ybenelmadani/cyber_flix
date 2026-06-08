@@ -4,7 +4,64 @@
  * Works on Vercel without any server configuration.
  */
 
-const FREE_PROVIDERS = [];
+const FREE_PROVIDERS = [
+  {
+    id: "vidlink",
+    name: "VidLink",
+    provider: "vidlink",
+    quality: "Auto",
+    movie: (id) => `https://vidlink.pro/movie/${id}`,
+    tv: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}`,
+  },
+  {
+    id: "vidsrc",
+    name: "VidSrc",
+    provider: "vidsrc",
+    quality: "HD",
+    movie: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}`,
+    tv: (id, s, e) => `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${s}&episode=${e}`,
+  },
+  {
+    id: "2embed",
+    name: "2Embed",
+    provider: "2embed",
+    quality: "HD",
+    movie: (id) => `https://www.2embed.cc/embed/${id}`,
+    tv: (id, s, e) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`,
+  },
+  {
+    id: "embedsu",
+    name: "Embed.su",
+    provider: "embedsu",
+    quality: "Auto",
+    movie: (id) => `https://embed.su/embed/movie/${id}`,
+    tv: (id, s, e) => `https://embed.su/embed/tv/${id}/${s}/${e}`,
+  },
+  {
+    id: "autoembed",
+    name: "AutoEmbed",
+    provider: "autoembed",
+    quality: "Auto",
+    movie: (id) => `https://autoembed.cc/movie/tmdb-${id}`,
+    tv: (id, s, e) => `https://autoembed.cc/tv/tmdb-${id}-${s}-${e}`,
+  },
+  {
+    id: "multiembed",
+    name: "MultiEmbed",
+    provider: "multiembed",
+    quality: "HD",
+    movie: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
+    tv: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`,
+  },
+  {
+    id: "nontongo",
+    name: "NontonGo",
+    provider: "nontongo",
+    quality: "HD",
+    movie: (id) => `https://www.NontonGo.net/embed/movie/${id}`,
+    tv: (id, s, e) => `https://www.NontonGo.net/embed/tv/${id}/${s}/${e}`,
+  },
+];
 
 /**
  * Get server list for movies.
@@ -43,3 +100,4 @@ export const getTvEpisodeProviders = (tmdbId, season, episode) =>
     isPremium: false,
     isFreeProvider: true,
   }));
+

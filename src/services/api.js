@@ -327,13 +327,14 @@ export const paymentsAPI = {
 };
 
 export const scraperAPI = {
-  getLinks: ({ title, year, mediaType, season, episode }) => {
+  getLinks: ({ title, year, mediaType, season, episode, tmdbId }) => {
     const params = new URLSearchParams();
     if (title) params.set("title", title);
     if (year) params.set("year", year);
     if (mediaType) params.set("mediaType", mediaType);
     if (season) params.set("season", season);
     if (episode) params.set("episode", episode);
+    if (tmdbId) params.set("tmdbId", tmdbId);
     const query = params.toString();
     return request(`/scraper/links${query ? `?${query}` : ""}`);
   }
