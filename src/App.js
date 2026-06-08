@@ -907,13 +907,8 @@ export default function App() {
           episodeNumber,
         });
 
-        const codespectersServer = episodeServers.find(
-          (s) =>
-            s.provider === "codespecters" ||
-            String(s.name || "").toLowerCase().includes("codespecters")
-        );
         const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
-        setActiveServer(codespectersServer || fp[0] || null);
+        setActiveServer(fp[0] || episodeServers[0] || null);
 
         trackEvent("open_episode_detail", {
           media_type: "tv",
@@ -1007,13 +1002,8 @@ export default function App() {
           // Load free providers (VidSrc, VidLink, 2Embed, etc.) — shown first
           loadFreeProviders({ mediaType: "movie", tmdbId: id });
 
-          const codespectersServer = movieServers.find(
-            (s) =>
-              s.provider === "codespecters" ||
-              String(s.name || "").toLowerCase().includes("codespecters")
-          );
           const fp = getMovieProviders(id);
-          setActiveServer(codespectersServer || fp[0] || null);
+          setActiveServer(fp[0] || movieServers[0] || null);
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
@@ -1091,15 +1081,7 @@ export default function App() {
       return;
     }
 
-    const codespectersServer = servers.find(
-      (s) =>
-        s.provider === "codespecters" ||
-        String(s.name || "").toLowerCase().includes("codespecters") ||
-        String(s.id || "").toLowerCase().includes("codespecters")
-    );
-
     const preferredServer =
-      codespectersServer ||
       servers.find((server) => server?.isFreeProvider || server?.isScraped || String(server?.url || "").trim()) ||
       servers[0];
 
