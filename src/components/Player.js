@@ -95,13 +95,16 @@ export default function Player({
   const hasPlayableUrl = Boolean(String(activeSource?.url || "").trim());
 
   useEffect(() => {
+    setPlaybackError("");
+  }, [activeSource]);
+
+  useEffect(() => {
     if (!activeSource) {
       setIsLoading(false);
       return;
     }
 
     if (!hasPlayableUrl) {
-      setPlaybackError("");
       setIsLoading(true);
     }
   }, [activeSource, hasPlayableUrl]);

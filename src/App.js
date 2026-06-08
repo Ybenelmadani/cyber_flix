@@ -1035,7 +1035,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadFreeProviders, loadSeason, normalizeServers, t.errors.details]
+    [apiLanguage, loadFreeProviders, loadSeason, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
   const handleServerChange = useCallback(
