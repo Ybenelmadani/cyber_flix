@@ -156,12 +156,6 @@ export default function Player({
     return provider === "codespecters" || name.includes("codespecters") || id.includes("codespecters");
   }, [activeSource]);
 
-  const sandboxAttribute = useMemo(() => {
-    if (!activeSource) return undefined;
-    if (isCodespecters) return undefined;
-    return "allow-scripts allow-same-origin allow-forms";
-  }, [activeSource, isCodespecters]);
-
 
   return (
     <div className="egydead-player">
@@ -221,9 +215,7 @@ export default function Player({
             className="player-iframe"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
             allowFullScreen
-            referrerPolicy="no-referrer"
             scrolling="no"
-            sandbox={sandboxAttribute}
             onLoad={() => setIsLoading(false)}
           />
         ) : hasPlayableUrl ? (
