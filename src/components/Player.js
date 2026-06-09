@@ -162,10 +162,6 @@ export default function Player({
     return "allow-scripts allow-same-origin allow-forms";
   }, [activeSource, isCodespecters]);
 
-  const referrerPolicy = useMemo(() => {
-    if (isCodespecters) return "strict-origin-when-cross-origin";
-    return "no-referrer";
-  }, [isCodespecters]);
 
   return (
     <div className="egydead-player">
@@ -225,7 +221,7 @@ export default function Player({
             className="player-iframe"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
             allowFullScreen
-            referrerPolicy={referrerPolicy}
+            referrerPolicy="no-referrer"
             scrolling="no"
             sandbox={sandboxAttribute}
             onLoad={() => setIsLoading(false)}
