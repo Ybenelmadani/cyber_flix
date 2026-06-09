@@ -89,7 +89,11 @@ export const streamsAPI = {
     request(
       `/streams/tv/${tmdbId}?seasonNumber=${encodeURIComponent(
         seasonNumber
-      )}&episodeNumber=${encodeURIComponent(episodeNumber)}`
+      )}&episodeNumber=${encodeURIComponent(
+        episodeNumber
+      )}&season=${encodeURIComponent(seasonNumber)}&episode=${encodeURIComponent(
+        episodeNumber
+      )}`
     ),
 
   getMoviePlayback: (tmdbId, source = 0) =>
@@ -102,6 +106,8 @@ export const streamsAPI = {
       `/streams/tv/${tmdbId}/play?seasonNumber=${encodeURIComponent(
         seasonNumber
       )}&episodeNumber=${encodeURIComponent(
+        episodeNumber
+      )}&season=${encodeURIComponent(seasonNumber)}&episode=${encodeURIComponent(
         episodeNumber
       )}&source=${encodeURIComponent(source)}`
     ),
@@ -357,4 +363,3 @@ export const freeProvidersAPI = {
     );
   },
 };
-
