@@ -29,6 +29,31 @@ const PROVIDER_META = {
   egydead:    { label: "EgyDead",    color: "#06b6d4" },
 };
 
+const EMBED_PROVIDERS = new Set([
+  "vidlink",
+  "vidsrc",
+  "2embed",
+  "embedsu",
+  "autoembed",
+  "multiembed",
+  "nontongo",
+  "codespecters",
+  "youtube",
+  "vimeo",
+  "voe",
+  "doodstream",
+  "mixdrop",
+  "earnvids",
+  "streamix",
+  "byse",
+  "streamhg",
+  "streamruby",
+  "egybestvid",
+  "egydead",
+  "vidtube",
+  "google drive",
+]);
+
 const getProviderMeta = (provider = "") => {
   const key = String(provider).toLowerCase().trim();
   return PROVIDER_META[key] || { label: provider || "Server", color: "#374151" };
@@ -85,11 +110,25 @@ export default function Player({
   const resolvedSourceType = useMemo(() => {
     if (!activeSource) return "video";
     const url = activeSource.url?.toLowerCase() || "";
-    if (url.includes("embed") || url.includes("iframe") || url.includes("player") || url.includes("vidlink") || url.includes("vidsrc") || url.includes("2embed") || url.includes("autoembed") || url.includes("multiembed") || url.includes("nontongo") || url.includes("embed.su")) {
+    const provider = String(activeSource.provider || "").toLowerCase().trim();
+    if (EMBED_PROVIDERS.has(provider)) {
+      return "embed";
+    }
+    if (url.includes("embed") || url.includes("iframe") || url.includes("player") || url.includes("vidlink") || url.includes("vidsrc") || url.includes("2embed") || url.includes("autoembed") || url.includes("multiembed") || url.includes("nontongo") || url.includes("embed.su") || url.includes("voe") || url.includes("mixdrop") || url.includes("dood") || url.includes("streamruby") || url.includes("streamhg") || url.includes("earnvids")) {
       return "embed";
     }
     if (activeSource.type === "embed") return "embed";
     return "video";
+  }, [activeSource]);
+
+  const subtitleTracks = useMemo(() => {
+    if (!Array.isArray(activeSource?.subtitles)) {
+      return [];
+    }
+
+    return activeSource.subtitles.filter(
+      (track) => track && String(track.src || "").trim()
+    );
   }, [activeSource]);
 
   const hasPlayableUrl = Boolean(String(activeSource?.url || "").trim());
@@ -220,6 +259,7 @@ export default function Player({
           />
         ) : hasPlayableUrl ? (
           <video
+            key={activeSource?.url || "video"}
             ref={videoRef}
             controls
             playsInline
@@ -227,6 +267,16 @@ export default function Player({
             className="player-video"
             preload="metadata"
           >
+            {subtitleTracks.map((track) => (
+              <track
+                key={track.id || `${track.srcLang || "ar"}-${track.src}`}
+                kind={track.kind || "subtitles"}
+                src={track.src}
+                srcLang={track.srcLang || "ar"}
+                label={track.label || "Arabic"}
+                default={Boolean(track.default)}
+              />
+            ))}
             Your browser does not support video playback.
           </video>
         ) : null}

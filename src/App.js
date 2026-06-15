@@ -588,9 +588,29 @@ export default function App() {
       language: source.language || null,
       isPremium: Boolean(source.isPremium),
       isLegal: Boolean(source.isLegal),
-      provider: source.provider || "custom",
+      provider: String(source.provider || "custom").toLowerCase(),
       url: source.url || "",
+      subtitles: Array.isArray(source.subtitles) ? source.subtitles : [],
     }));
+  }, []);
+
+  const chooseInitialServer = useCallback((servers = []) => {
+    if (!Array.isArray(servers) || servers.length === 0) return null;
+
+    return (
+      servers.find(
+        (server) =>
+          server?.isFreeProvider ||
+          server?.isScraped ||
+          (String(server?.url || "").trim() &&
+            String(server?.provider || "").toLowerCase() !== "codespecters")
+      ) ||
+      servers.find(
+        (server) => String(server?.provider || "").toLowerCase() !== "codespecters"
+      ) ||
+      servers[0] ||
+      null
+    );
   }, []);
 
   const loadScrapedLinks = useCallback(
@@ -614,9 +634,21 @@ export default function App() {
               isScraped: true,
             }))
           );
+
+          const playableScraped = scraped.filter(
+            (server) =>
+              Boolean(String(server?.url || "").trim()) &&
+              ["embed", "hls", "mp4"].includes(String(server?.type || "").toLowerCase())
+          );
           
-          const normalized = normalizeServers(scraped);
-          setServers((prev) => [...prev, ...normalized]);
+          const normalized = normalizeServers(playableScraped);
+          setServers((prev) => {
+            const existingUrls = new Set(prev.map((server) => server.url));
+            const fresh = normalized.filter(
+              (server) => server.url && !existingUrls.has(server.url)
+            );
+            return [...prev, ...fresh];
+          });
         }
       } catch (err) {
         console.error("Scraper fetch error:", err);
@@ -691,6 +723,7 @@ export default function App() {
         isPremium: Boolean(playback.isPremium),
         isLegal: Boolean(playback.isLegal),
         provider: playback.provider || "custom",
+        subtitles: Array.isArray(playback.subtitles) ? playback.subtitles : [],
       };
     },
     []
@@ -907,14 +940,8 @@ export default function App() {
           episodeNumber,
         });
 
-        const codespectersTvServer = episodeServers.find(
-          (s) =>
-            s.provider === "codespecters" ||
-            String(s.name || "").toLowerCase().includes("codespecters")
-        );
-
         const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
-        setActiveServer(codespectersTvServer || fp[0] || episodeServers[0] || null);
+        setActiveServer(chooseInitialServer([...fp, ...episodeServers]));
 
         trackEvent("open_episode_detail", {
           media_type: "tv",
@@ -928,7 +955,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadFreeProviders, loadScrapedLinks, normalizeServers, t.errors.details]
+    [apiLanguage, chooseInitialServer, loadFreeProviders, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
   const handleEpisodeSelect = useCallback(
@@ -1008,14 +1035,8 @@ export default function App() {
           // Load free providers (VidSrc, VidLink, 2Embed, etc.) — shown first
           loadFreeProviders({ mediaType: "movie", tmdbId: id });
 
-          const codespectersServer = movieServers.find(
-            (s) =>
-              s.provider === "codespecters" ||
-              String(s.name || "").toLowerCase().includes("codespecters")
-          );
-
           const fp = getMovieProviders(id);
-          setActiveServer(codespectersServer || fp[0] || movieServers[0] || null);
+          setActiveServer(chooseInitialServer([...fp, ...movieServers]));
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
@@ -1037,7 +1058,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, loadFreeProviders, loadSeason, loadScrapedLinks, normalizeServers, t.errors.details]
+    [apiLanguage, chooseInitialServer, loadFreeProviders, loadSeason, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
   const handleServerChange = useCallback(

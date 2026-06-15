@@ -9,6 +9,7 @@ const emptyForm = {
   episodeNumber: "",
   title: "",
   poster: "",
+  subtitleArabicUrl: "",
   sourceName: "",
   sourceProvider: "custom",
   sourcePlaybackId: "",
@@ -37,6 +38,7 @@ const toFormState = (stream) => {
         : String(stream.episodeNumber),
     title: stream?.title || "",
     poster: stream?.poster || "",
+    subtitleArabicUrl: stream?.subtitleArabicUrl || "",
     sourceName: source?.name || "",
     sourceProvider: source?.provider || "custom",
     sourcePlaybackId: source?.playbackId || "",
@@ -57,6 +59,7 @@ const buildPayload = (form) => ({
   episodeNumber: form.mediaType === "tv" ? Number(form.episodeNumber) : null,
   title: String(form.title).trim(),
   poster: String(form.poster || "").trim(),
+  subtitleArabicUrl: String(form.subtitleArabicUrl || "").trim(),
   sources: [
     {
       name: String(form.sourceName || "").trim(),
@@ -310,6 +313,16 @@ export default function AdminStreamsPanel({ user, onBack }) {
 
             <input
               type="text"
+              value={form.subtitleArabicUrl}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, subtitleArabicUrl: e.target.value }))
+              }
+              placeholder="Arabic subtitle URL (optional)"
+              className="input-cyber w-full"
+            />
+
+            <input
+              type="text"
               value={form.sourceName}
               onChange={(e) => setForm((prev) => ({ ...prev, sourceName: e.target.value }))}
               placeholder="Source name"
@@ -509,6 +522,10 @@ export default function AdminStreamsPanel({ user, onBack }) {
                         </p>
                         <p className="text-sm text-cyber-cyan/70 break-all">
                           Path: {source.path || "No path"}
+                        </p>
+                        <p className="text-sm text-cyber-cyan/70 break-all">
+                          Arabic subtitles:{" "}
+                          {stream.subtitleArabicUrl || "Automatic path lookup"}
                         </p>
                         <p className="text-sm text-cyber-cyan/70 break-all">
                           Legal: {source.isLegal ? "yes" : "no"}
