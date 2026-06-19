@@ -231,7 +231,7 @@ export default function MovieDetail({
 
   const hasStreams = Array.isArray(servers) && servers.length > 0;
   const downloadServers = hasStreams
-    ? servers.filter((server) => !server?.isLegal && !server?.isFreeProvider && server?.type !== "embed")
+    ? servers.filter((server) => !server?.isLegal && !server?.isFreeProvider)
     : [];
 
   return (
@@ -480,7 +480,7 @@ export default function MovieDetail({
             <div className="-mx-5 sm:-mx-6">
               {hasStreams ? (
                 <Player
-                  servers={servers.filter(s => s.type !== "download" && s.provider !== "TopCinema")}
+                  servers={servers.filter(s => s.type !== "download")}
                   activeServer={activeServer}
                   setActiveServer={setActiveServer}
                   poster={backdropUrl}

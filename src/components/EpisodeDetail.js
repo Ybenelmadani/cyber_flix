@@ -216,7 +216,7 @@ export default function EpisodeDetail({
 
           {(() => {
             const hasStreams = Array.isArray(servers) && servers.length > 0;
-            const downloadServers = servers.filter((s) => !s.isLegal && !s.isFreeProvider && s.type !== "embed");
+            const downloadServers = servers.filter((s) => !s.isLegal && !s.isFreeProvider);
             const posterUrl = stillUrl;
             const epTitle =
               episode.name ||
@@ -252,7 +252,7 @@ export default function EpisodeDetail({
                 <div className="-mx-5 sm:-mx-6">
                   {hasStreams ? (
                     <Player
-                      servers={servers.filter(s => s.type !== "download" && s.provider !== "TopCinema")}
+                      servers={servers.filter(s => s.type !== "download")}
                       activeServer={activeServer}
                       setActiveServer={setActiveServer}
                       poster={posterUrl}
