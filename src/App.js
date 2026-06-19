@@ -638,7 +638,7 @@ export default function App() {
           const playableScraped = scraped.filter(
             (server) =>
               Boolean(String(server?.url || "").trim()) &&
-              ["embed", "hls", "mp4"].includes(String(server?.type || "").toLowerCase())
+              ["embed", "hls", "mp4", "download"].includes(String(server?.type || "").toLowerCase())
           );
           
           const normalized = normalizeServers(playableScraped);
