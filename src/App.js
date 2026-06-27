@@ -591,6 +591,8 @@ export default function App() {
       provider: String(source.provider || "custom").toLowerCase(),
       url: source.url || "",
       subtitles: Array.isArray(source.subtitles) ? source.subtitles : [],
+      isFreeProvider: Boolean(source.isFreeProvider),
+      isScraped: Boolean(source.isScraped),
     }));
   }, []);
 

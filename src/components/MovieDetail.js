@@ -231,7 +231,12 @@ export default function MovieDetail({
 
   const hasStreams = Array.isArray(servers) && servers.length > 0;
   const downloadServers = hasStreams
-    ? servers.filter((server) => !server?.isLegal && !server?.isFreeProvider)
+    ? servers.filter(
+        (server) =>
+          !server?.isLegal &&
+          !server?.isFreeProvider &&
+          String(server?.type || "").toLowerCase() === "download"
+      )
     : [];
 
   return (

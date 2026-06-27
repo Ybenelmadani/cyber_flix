@@ -216,7 +216,12 @@ export default function EpisodeDetail({
 
           {(() => {
             const hasStreams = Array.isArray(servers) && servers.length > 0;
-            const downloadServers = servers.filter((s) => !s.isLegal && !s.isFreeProvider);
+            const downloadServers = servers.filter(
+              (s) =>
+                !s.isLegal &&
+                !s.isFreeProvider &&
+                String(s?.type || "").toLowerCase() === "download"
+            );
             const posterUrl = stillUrl;
             const epTitle =
               episode.name ||
