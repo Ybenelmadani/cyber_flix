@@ -19,6 +19,7 @@ const PROVIDER_META = {
   // EgyDead Scraped Hosts
   voe:        { label: "Voe",        color: "#f43f5e" },
   doodstream: { label: "DoodStream", color: "#0ea5e9" },
+
   mixdrop:    { label: "Mixdrop",    color: "#f59e0b" },
   earnvids:   { label: "EarnVids",   color: "#10b981" },
   streamix:   { label: "Streamix",   color: "#8b5cf6" },
@@ -26,7 +27,7 @@ const PROVIDER_META = {
   streamhg:   { label: "StreamHG",   color: "#14b8a6" },
   streamruby: { label: "StreamRuby", color: "#ef4444" },
   egybestvid: { label: "EgyBestVid", color: "#22c55e" },
-  egydead:    { label: "EgyDead",    color: "#06b6d4" },
+  cyberflix:  { label: "CyberFlix",  color: "#06b6d4" },
 };
 
 const EMBED_PROVIDERS = new Set([
@@ -49,7 +50,7 @@ const EMBED_PROVIDERS = new Set([
   "streamhg",
   "streamruby",
   "egybestvid",
-  "egydead",
+  "cyberflix",
   "vidtube",
   "google drive",
 ]);
