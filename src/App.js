@@ -651,9 +651,10 @@ export default function App() {
           
           const normalized = normalizeServers(playableScraped);
           setServers((prev) => {
-            const existingUrls = new Set(prev.map((server) => server.url));
+            const getUniqueKey = (server) => `${server.url}-${server.type || 'embed'}`;
+            const existingKeys = new Set(prev.map(getUniqueKey));
             const fresh = normalized.filter(
-              (server) => server.url && !existingUrls.has(server.url)
+              (server) => server.url && !existingKeys.has(getUniqueKey(server))
             );
             return [...prev, ...fresh];
           });
@@ -681,9 +682,10 @@ export default function App() {
         const normalized = normalizeServers(rawSources);
 
         setServers((prev) => {
-          // Avoid duplicates by URL
-          const existingUrls = new Set(prev.map((s) => s.url));
-          const fresh = normalized.filter((s) => !existingUrls.has(s.url));
+          // Avoid duplicates by URL and type
+          const getUniqueKey = (server) => `${server.url}-${server.type || 'embed'}`;
+          const existingKeys = new Set(prev.map(getUniqueKey));
+          const fresh = normalized.filter((s) => s.url && !existingKeys.has(getUniqueKey(s)));
           return [...fresh, ...prev];
         });
       } catch (err) {
