@@ -493,7 +493,7 @@ export default function MovieDetail({
             <div className="-mx-5 sm:-mx-6">
               {hasStreams ? (
                 <Player
-                  servers={servers.filter(s => s.type !== "download")}
+                  servers={servers.filter(s => s.isFreeProvider || s.isLegal)}
                   activeServer={activeServer}
                   setActiveServer={setActiveServer}
                   poster={backdropUrl}
@@ -526,8 +526,43 @@ export default function MovieDetail({
             </div>
           </section>
 
-
-
+          {externalServers.length > 0 && (
+            <section className="card-neon p-5 sm:p-6">
+              <h3 className="mb-4 text-xl font-bold text-cyber-cyan flex items-center gap-2">
+                <Download className="h-5 w-5" />
+                {text.externalServers || "External servers"}
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+                {externalServers.map((server) => (
+                  <div
+                    key={server.id}
+                    className="group relative overflow-hidden rounded-2xl border border-cyber-cyan/10 bg-cyber-darker/60 p-4 transition-all hover:border-cyber-fuchsia/40"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-cyber-cyan/50">
+                        {server.provider || "Server"}
+                      </span>
+                      <span className="rounded-md bg-cyber-cyan/10 px-2 py-0.5 text-[10px] font-bold text-cyber-cyan border border-cyber-cyan/20">
+                        {server.quality || "HD"}
+                      </span>
+                    </div>
+                    <h4 className="mb-4 text-sm font-bold text-cyan-50 truncate">
+                      {server.name}
+                    </h4>
+                    <a
+                      href={server.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyber-cyan/10 py-2.5 text-xs font-bold text-cyber-cyan border border-cyber-cyan/20 transition-all hover:bg-cyber-fuchsia hover:text-white hover:border-cyber-fuchsia shadow-lg shadow-cyber-cyan/5"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      {text.openServer || "Open server"}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
 
           {downloadServers.length > 0 && (
