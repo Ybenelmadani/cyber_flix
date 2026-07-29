@@ -267,7 +267,7 @@ export default function Header({
           className="shrink-0 text-left transition hover:opacity-90"
           aria-label="Go to home page"
         >
-          <CyberflixLogo compact />
+          <CyberflixLogo compact hideTextOnMobile={true} />
         </button>
 
         {/* Mobile search — inline to avoid remount bug */}

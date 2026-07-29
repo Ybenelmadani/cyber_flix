@@ -54,12 +54,12 @@ function LogoMark({ className = "h-11 w-11" }) {
   );
 }
 
-export default function CyberflixLogo({ compact = false }) {
+export default function CyberflixLogo({ compact = false, hideTextOnMobile = false }) {
   return (
     <span className={`inline-flex items-center ${compact ? "gap-2.5" : "gap-3"}`}>
       <LogoMark className={compact ? "h-8 w-8" : "h-11 w-11"} />
 
-      <span className="flex flex-col">
+      <span className={`${hideTextOnMobile ? "hidden sm:flex" : "flex"} flex-col`}>
         <span
           className={`font-semibold uppercase tracking-[0.35em] text-cyber-cyan/60 ${
             compact ? "text-[0.5rem]" : "text-[0.68rem]"
