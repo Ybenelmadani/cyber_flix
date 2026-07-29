@@ -39,7 +39,7 @@ function SearchDropdown({ results, isLoading, onSelect, mediaType }) {
         const poster = item.poster_path
           ? `${TMDB_IMAGE_BASE}${item.poster_path}`
           : FALLBACK_POSTER;
-        const type = item.title ? "movie" : "tv";
+        const type = item.media_type || (item.title ? "movie" : "tv");
 
         return (
           <button
@@ -152,8 +152,8 @@ export default function Header({
           fetch(`${resolvedBase}/tmdb/tv/search?query=${q}&page=1&language=${lang}`).then((r) => r.json()),
         ]);
 
-        const movies = movieRes.status === "fulfilled" ? (movieRes.value.results || []) : [];
-        const tvShows = tvRes.status === "fulfilled" ? (tvRes.value.results || []) : [];
+        const movies = movieRes.status === "fulfilled" ? (movieRes.value.results || []).map(m => ({...m, media_type: "movie"})) : [];
+        const tvShows = tvRes.status === "fulfilled" ? (tvRes.value.results || []).map(t => ({...t, media_type: "tv"})) : [];
 
         // Merge and sort by popularity, limit to 8 results
         const merged = [...movies.slice(0, 5), ...tvShows.slice(0, 5)]
