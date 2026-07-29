@@ -116,7 +116,8 @@ export default function Header({
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
+  const desktopSearchRef = useRef(null);
   const searchDebounceRef = useRef(null);
 
   const menuRef = useRef(null);
@@ -205,7 +206,12 @@ export default function Header({
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
+      if (
+        (mobileSearchRef.current && mobileSearchRef.current.contains(event.target)) ||
+        (desktopSearchRef.current && desktopSearchRef.current.contains(event.target))
+      ) {
+        // click inside a search area
+      } else {
         setShowSearchDropdown(false);
       }
       // Close new dropdowns
@@ -271,7 +277,7 @@ export default function Header({
         </button>
 
         {/* Mobile search — inline to avoid remount bug */}
-        <div className="relative flex-1 lg:hidden" ref={searchRef}>
+        <div className="relative flex-1 lg:hidden" ref={mobileSearchRef}>
           <label className="relative block">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
             <input
@@ -308,7 +314,7 @@ export default function Header({
         <div className="hidden min-w-max flex-1 rounded-[1.6rem] border border-cyber-cyan/15 bg-cyber-darker/55 p-1.5 shadow-[0_18px_60px_rgba(8,18,38,0.28)] lg:block">
           <div className="flex items-center gap-2">
             {/* Desktop search — inline to avoid remount bug */}
-            <div className="relative w-[20rem]" ref={searchRef}>
+            <div className="relative w-[20rem]" ref={desktopSearchRef}>
               <label className="relative block">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyber-cyan/50" />
                 <input
