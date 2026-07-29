@@ -1305,11 +1305,11 @@ export default function App() {
       clearError();
 
       try {
-        const data =
-          mediaType === "movie"
-            ? await tmdbAPI.search(query, 1, apiLanguage)
-            : await tmdbAPI.tvSearch(query, 1, apiLanguage);
-        setItems(data.results || []);
+        const data = await tmdbAPI.multiSearch(query, 1, apiLanguage);
+        const filteredResults = (data.results || []).filter(
+          (item) => item.media_type === "movie" || item.media_type === "tv"
+        );
+        setItems(filteredResults);
       } catch {
         setError(t.errors.search);
       } finally {
@@ -1614,7 +1614,7 @@ export default function App() {
                 movies={displayedItems}
                 onSelect={(item) =>
                   openDetailById({
-                    media: mediaType,
+                    media: item.media_type || mediaType,
                     id: item.id,
                     seedItem: item,
                     pushState: true,

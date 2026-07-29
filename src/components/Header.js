@@ -194,9 +194,10 @@ export default function Header({
       setShowSearchDropdown(false);
       setSearchQuery("");
       setSearchResults([]);
+      setShowMobileNav(false);
       onSelectSearchResult(item, type);
     },
-    [onSelectSearchResult, setSearchQuery]
+    [onSelectSearchResult, setSearchQuery, setShowMobileNav]
   );
 
   useEffect(() => {

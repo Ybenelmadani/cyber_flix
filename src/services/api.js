@@ -160,6 +160,14 @@ export const tmdbAPI = {
       )
     ),
 
+  multiSearch: (query, page = 1, language) =>
+    request(
+      withLanguage(
+        `/tmdb/multi/search?query=${encodeURIComponent(query)}&page=${page}`,
+        language
+      )
+    ),
+
   details: (id, language) =>
     request(withLanguage(`/tmdb/movie/${id}`, language)),
 
