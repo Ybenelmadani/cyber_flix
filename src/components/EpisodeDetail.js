@@ -226,7 +226,8 @@ export default function EpisodeDetail({
               (s) =>
                 !s.isLegal &&
                 !s.isFreeProvider &&
-                String(s?.type || "").toLowerCase() !== "download"
+                String(s?.type || "").toLowerCase() !== "download" &&
+                String(s?.name || s?.provider || "").toLowerCase().includes("vidtube")
             );
             const posterUrl = stillUrl;
             const epTitle =
