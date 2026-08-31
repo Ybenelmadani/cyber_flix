@@ -934,7 +934,7 @@ export default function App() {
 
         // Trigger Scraper for Episode
         loadScrapedLinks({
-          title: showDetails.name || showDetails.original_name,
+          title: showDetails.original_name || showDetails.name,
           year: new Date(showDetails.first_air_date).getFullYear(),
           mediaType: "tv",
           seasonNumber,
@@ -1036,7 +1036,7 @@ export default function App() {
 
           // Trigger Scraper for Movie
           loadScrapedLinks({
-            title: data.title || data.original_title,
+            title: data.original_title || data.title,
             year: new Date(data.release_date).getFullYear(),
             mediaType: "movie",
             tmdbId: id,
