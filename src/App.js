@@ -605,20 +605,10 @@ export default function App() {
   const chooseInitialServer = useCallback((servers = []) => {
     if (!Array.isArray(servers) || servers.length === 0) return null;
 
-    return (
-      servers.find(
-        (server) =>
-          server?.isFreeProvider ||
-          server?.isScraped ||
-          (String(server?.url || "").trim() &&
-            String(server?.provider || "").toLowerCase() !== "codespecters")
-      ) ||
-      servers.find(
-        (server) => String(server?.provider || "").toLowerCase() !== "codespecters"
-      ) ||
-      servers[0] ||
-      null
-    );
+    const codespecters = servers.find(s => String(s?.provider || "").toLowerCase() === "codespecters");
+    if (codespecters) return codespecters;
+
+    return servers[0] || null;
   }, []);
 
   const loadScrapedLinks = useCallback(
@@ -686,7 +676,12 @@ export default function App() {
           const getUniqueKey = (server) => `${server.url}-${server.type || 'embed'}`;
           const existingKeys = new Set(prev.map(getUniqueKey));
           const fresh = normalized.filter((s) => s.url && !existingKeys.has(getUniqueKey(s)));
-          return [...fresh, ...prev];
+          
+          // Pull Codespecters from prev so it appears first
+          const codespecters = prev.filter(s => String(s.provider).toLowerCase() === "codespecters");
+          const otherPrev = prev.filter(s => String(s.provider).toLowerCase() !== "codespecters");
+
+          return [...codespecters, ...fresh, ...otherPrev];
         });
       } catch (err) {
         console.error("Free providers error:", err);
