@@ -383,8 +383,10 @@ export default function MovieDetail({
                     title="trailer"
                     className="absolute inset-0 block h-full w-full"
                     src={`https://www.youtube.com/embed/${trailer.key}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                     allowFullScreen
+                    webkitallowfullscreen="true"
+                    mozallowfullscreen="true"
                   />
                 </div>
               </div>

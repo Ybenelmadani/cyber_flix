@@ -255,6 +255,8 @@ export default function Player({
             className="player-iframe"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
             allowFullScreen
+            webkitallowfullscreen="true"
+            mozallowfullscreen="true"
             scrolling="no"
             onLoad={() => setIsLoading(false)}
           />
