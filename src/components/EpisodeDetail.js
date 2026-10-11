@@ -206,8 +206,8 @@ export default function EpisodeDetail({
                     title="episode-trailer"
                     className="absolute inset-0 block h-full w-full"
                     src={`https://www.youtube.com/embed/${trailer.key}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                    allowFullScreen
+                    allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; gyroscope *; picture-in-picture *; web-share *; fullscreen *"
+                    allowFullScreen={true}
                     webkitallowfullscreen="true"
                     mozallowfullscreen="true"
                   />

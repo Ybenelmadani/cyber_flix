@@ -68,8 +68,69 @@ export default function Player({
   title,
 }) {
   const videoRef = useRef(null);
+  const viewportRef = useRef(null);
   const [playbackError, setPlaybackError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    const elem = viewportRef.current;
+    if (!elem) return;
+
+    const doc = document;
+    const isCurrentlyFullscreen = Boolean(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
+    );
+
+    if (!isCurrentlyFullscreen) {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch((err) => console.error("Fullscreen error:", err));
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    } else {
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch((err) => console.error("Exit fullscreen error:", err));
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.mozCancelFullScreen) {
+        doc.mozCancelFullScreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFull = Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+      setIsFullscreen(isFull);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+    };
+  }, []);
 
   const activeSource = useMemo(() => {
     if (!Array.isArray(servers) || servers.length === 0) return null;
@@ -230,11 +291,50 @@ export default function Player({
               );
             })}
           </div>
+
+          <button
+            type="button"
+            className="player-fullscreen-btn"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? "Quitter le plein écran (Esc)" : "Plein écran"}
+          >
+            {isFullscreen ? (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                </svg>
+                <span>Réduire</span>
+              </>
+            ) : (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+                <span>Plein écran</span>
+              </>
+            )}
+          </button>
         </div>
       )}
 
       {/* ── Video Player ── */}
-      <div className="player-viewport">
+      <div className="player-viewport" ref={viewportRef}>
+        {/* Floating exit fullscreen button when fullscreen */}
+        {isFullscreen && (
+          <button
+            type="button"
+            className="player-floating-exit-btn"
+            onClick={toggleFullscreen}
+            title="Quitter le plein écran (Esc)"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+            <span>Quitter le plein écran</span>
+          </button>
+        )}
+
         {/* Loading shimmer */}
         {isLoading && (
           <div className="player-shimmer">
@@ -253,8 +353,8 @@ export default function Player({
             title={title || activeSource?.name || "Embedded stream"}
             src={activeSource?.url}
             className="player-iframe"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
-            allowFullScreen
+            allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; gyroscope *; picture-in-picture *; web-share *; fullscreen *"
+            allowFullScreen={true}
             webkitallowfullscreen="true"
             mozallowfullscreen="true"
             scrolling="no"
@@ -370,6 +470,91 @@ export default function Player({
           aspect-ratio: 16 / 9;
           background: #000;
           overflow: hidden;
+        }
+
+        /* ── Fullscreen Button in Tabs Bar ── */
+        .player-fullscreen-btn {
+          margin-left: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border-radius: 8px;
+          border: 1px solid rgba(34, 211, 238, 0.4);
+          background: rgba(34, 211, 238, 0.12);
+          color: #22d3ee;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          letter-spacing: 0.02em;
+        }
+
+        .player-fullscreen-btn:hover {
+          background: rgba(34, 211, 238, 0.25);
+          border-color: #22d3ee;
+          color: #ffffff;
+          box-shadow: 0 0 16px rgba(34, 211, 238, 0.4);
+          transform: translateY(-1px);
+        }
+
+        .player-fullscreen-btn:active {
+          transform: translateY(0);
+        }
+
+        /* ── Floating Exit Button in Fullscreen ── */
+        .player-floating-exit-btn {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          z-index: 10000;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 18px;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          background: rgba(10, 10, 15, 0.88);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          color: #ffffff;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+          transition: all 0.2s ease;
+        }
+
+        .player-floating-exit-btn:hover {
+          background: rgba(225, 29, 72, 0.95);
+          border-color: #f43f5e;
+          transform: scale(1.04);
+        }
+
+        /* ── Fullscreen Pseudo-classes on Player Viewport ── */
+        .player-viewport:fullscreen,
+        .player-viewport:-webkit-full-screen,
+        .player-viewport:-moz-full-screen,
+        .player-viewport:-ms-fullscreen {
+          width: 100vw !important;
+          height: 100vh !important;
+          max-width: 100vw !important;
+          max-height: 100vh !important;
+          aspect-ratio: unset !important;
+          border-radius: 0 !important;
+          background: #000 !important;
+        }
+
+        .player-viewport:fullscreen .player-iframe,
+        .player-viewport:-webkit-full-screen .player-iframe,
+        .player-viewport:-moz-full-screen .player-iframe,
+        .player-viewport:-ms-fullscreen .player-iframe,
+        .player-viewport:fullscreen .player-video,
+        .player-viewport:-webkit-full-screen .player-video {
+          width: 100vw !important;
+          height: 100vh !important;
+          inset: 0 !important;
         }
 
         .player-iframe {
