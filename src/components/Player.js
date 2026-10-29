@@ -144,7 +144,7 @@ export default function Player({
     };
   }, []);
 
-  // Show exit button on activity when in fullscreen and auto-hide after 2.5s
+  // Show exit button on activity when in fullscreen and auto-hide after 2s
   useEffect(() => {
     if (!isFullscreen) {
       setShowExitBtn(false);
@@ -154,9 +154,11 @@ export default function Player({
       return;
     }
 
-    triggerShowExitBtn();
-
-    const handleActivity = () => {
+    const handleActivity = (e) => {
+      // If user moves mouse in the top 100px of screen, reveal exit button briefly
+      if (e?.clientY !== undefined && e.clientY > 120) {
+        return;
+      }
       triggerShowExitBtn();
     };
 
@@ -368,19 +370,24 @@ export default function Player({
       <div className="player-viewport" ref={viewportRef}>
         {/* Floating exit fullscreen button when fullscreen */}
         {isFullscreen && (
-          <button
-            type="button"
-            className={`player-floating-exit-btn ${showExitBtn ? "visible" : ""}`}
-            onClick={toggleFullscreen}
-            onMouseEnter={triggerShowExitBtn}
-            title="Quitter le plein écran (Esc)"
-            aria-label="Quitter le plein écran"
+          <div
+            className="player-fullscreen-exit-zone"
+            onMouseEnter={() => setShowExitBtn(true)}
+            onMouseLeave={() => setShowExitBtn(false)}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+            <button
+              type="button"
+              className={`player-floating-exit-btn ${showExitBtn ? "visible" : ""}`}
+              onClick={toggleFullscreen}
+              title="Quitter le plein écran (Esc)"
+              aria-label="Quitter le plein écran"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
         )}
 
         {/* Loading shimmer */}
@@ -551,14 +558,26 @@ export default function Player({
           transform: translateY(0);
         }
 
+        /* ── Fullscreen Exit Trigger Zone (top-right corner) ── */
+        .player-fullscreen-exit-zone {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 140px;
+          height: 100px;
+          z-index: 10000;
+          display: flex;
+          align-items: flex-start;
+          justify-content: flex-end;
+          padding: 20px 20px 0 0;
+          pointer-events: auto;
+          box-sizing: border-box;
+        }
+
         /* ── Floating Exit Button in Fullscreen (only X icon on hover) ── */
         .player-floating-exit-btn {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          z-index: 10000;
-          width: 42px;
-          height: 42px;
+          width: 40px;
+          height: 40px;
           padding: 0;
           display: flex;
           align-items: center;
@@ -573,22 +592,12 @@ export default function Player({
           box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
           opacity: 0;
           pointer-events: none;
-          transform: scale(0.9);
-          transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+          transform: scale(0.85);
+          transition: opacity 0.3s ease, transform 0.25s ease, background 0.2s ease, border-color 0.2s ease;
         }
 
-        /* Hover zone extension so moving near the corner easily reveals the exit button */
-        .player-floating-exit-btn::before {
-          content: "";
-          position: absolute;
-          top: -15px;
-          right: -15px;
-          bottom: -15px;
-          left: -15px;
-          pointer-events: auto;
-        }
-
-        .player-viewport:hover .player-floating-exit-btn,
+        /* Revealed ONLY when hovering over the exit zone, on the button, or during top activity */
+        .player-fullscreen-exit-zone:hover .player-floating-exit-btn,
         .player-floating-exit-btn.visible,
         .player-floating-exit-btn:hover {
           opacity: 1;
