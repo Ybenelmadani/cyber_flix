@@ -1002,7 +1002,7 @@ export default function App() {
         const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
         const initialServer = chooseInitialServer([...fp, ...episodeServers]);
         if (initialServer) {
-          handleServerChange(initialServer);
+          setActiveServer(initialServer);
         }
 
         trackEvent("open_episode_detail", {
@@ -1017,7 +1017,8 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, chooseInitialServer, handleServerChange, loadFreeProviders, loadScrapedLinks, normalizeServers, t.errors.details]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [apiLanguage, chooseInitialServer, loadFreeProviders, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
   const handleEpisodeSelect = useCallback(
@@ -1100,7 +1101,7 @@ export default function App() {
           const fp = getMovieProviders(id);
           const initialServer = chooseInitialServer([...fp, ...movieServers]);
           if (initialServer) {
-            handleServerChange(initialServer);
+            setActiveServer(initialServer);
           }
         }
 
@@ -1123,7 +1124,8 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, chooseInitialServer, handleServerChange, loadFreeProviders, loadSeason, loadScrapedLinks, normalizeServers, t.errors.details]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [apiLanguage, chooseInitialServer, loadFreeProviders, loadSeason, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
 
