@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 
 // Provider icon/color mapping for the EgyDead-style tabs
@@ -72,6 +72,18 @@ export default function Player({
   const [playbackError, setPlaybackError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showExitBtn, setShowExitBtn] = useState(false);
+  const hideExitTimerRef = useRef(null);
+
+  const triggerShowExitBtn = useCallback(() => {
+    setShowExitBtn(true);
+    if (hideExitTimerRef.current) {
+      clearTimeout(hideExitTimerRef.current);
+    }
+    hideExitTimerRef.current = setTimeout(() => {
+      setShowExitBtn(false);
+    }, 2500);
+  }, []);
 
   const toggleFullscreen = () => {
     const elem = viewportRef.current;
@@ -131,6 +143,36 @@ export default function Player({
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
   }, []);
+
+  // Show exit button on activity when in fullscreen and auto-hide after 2.5s
+  useEffect(() => {
+    if (!isFullscreen) {
+      setShowExitBtn(false);
+      if (hideExitTimerRef.current) {
+        clearTimeout(hideExitTimerRef.current);
+      }
+      return;
+    }
+
+    triggerShowExitBtn();
+
+    const handleActivity = () => {
+      triggerShowExitBtn();
+    };
+
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("keydown", handleActivity);
+    window.addEventListener("touchstart", handleActivity);
+
+    return () => {
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      window.removeEventListener("touchstart", handleActivity);
+      if (hideExitTimerRef.current) {
+        clearTimeout(hideExitTimerRef.current);
+      }
+    };
+  }, [isFullscreen, triggerShowExitBtn]);
 
   const activeSource = useMemo(() => {
     if (!Array.isArray(servers) || servers.length === 0) return null;
@@ -328,15 +370,16 @@ export default function Player({
         {isFullscreen && (
           <button
             type="button"
-            className="player-floating-exit-btn"
+            className={`player-floating-exit-btn ${showExitBtn ? "visible" : ""}`}
             onClick={toggleFullscreen}
+            onMouseEnter={triggerShowExitBtn}
             title="Quitter le plein écran (Esc)"
+            aria-label="Quitter le plein écran"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
-            <span>Quitter le plein écran</span>
           </button>
         )}
 
@@ -508,33 +551,56 @@ export default function Player({
           transform: translateY(0);
         }
 
-        /* ── Floating Exit Button in Fullscreen ── */
+        /* ── Floating Exit Button in Fullscreen (only X icon on hover) ── */
         .player-floating-exit-btn {
           position: absolute;
           top: 20px;
           right: 20px;
           z-index: 10000;
-          display: inline-flex;
+          width: 42px;
+          height: 42px;
+          padding: 0;
+          display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 10px 18px;
-          border-radius: 9999px;
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          background: rgba(10, 10, 15, 0.88);
+          justify-content: center;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          background: rgba(10, 10, 15, 0.75);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           color: #ffffff;
-          font-size: 13px;
-          font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-          transition: all 0.2s ease;
+          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+          opacity: 0;
+          pointer-events: none;
+          transform: scale(0.9);
+          transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        /* Hover zone extension so moving near the corner easily reveals the exit button */
+        .player-floating-exit-btn::before {
+          content: "";
+          position: absolute;
+          top: -15px;
+          right: -15px;
+          bottom: -15px;
+          left: -15px;
+          pointer-events: auto;
+        }
+
+        .player-viewport:hover .player-floating-exit-btn,
+        .player-floating-exit-btn.visible,
+        .player-floating-exit-btn:hover {
+          opacity: 1;
+          pointer-events: auto;
+          transform: scale(1);
         }
 
         .player-floating-exit-btn:hover {
           background: rgba(225, 29, 72, 0.95);
           border-color: #f43f5e;
-          transform: scale(1.04);
+          box-shadow: 0 0 18px rgba(244, 63, 94, 0.6);
+          transform: scale(1.08);
         }
 
         /* ── Fullscreen Pseudo-classes on Player Viewport ── */

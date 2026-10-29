@@ -876,13 +876,13 @@ export default function App() {
   const handleServerChange = useCallback(
     async (server) => {
       try {
-        if (!selectedDetails?.id) return;
-
         // Free providers & scraped sources already have a direct embed URL — use as-is
         if (server?.isFreeProvider || server?.isScraped || server?.url) {
           setActiveServer(server);
           return;
         }
+
+        if (!selectedDetails?.id) return;
 
         const sourceIndex = Number(server?.id || 0);
 
@@ -1130,7 +1130,7 @@ export default function App() {
 
 
   useEffect(() => {
-    if (!selectedDetails?.id || !Array.isArray(servers) || servers.length === 0) {
+    if (!Array.isArray(servers) || servers.length === 0) {
       return;
     }
 
@@ -1148,7 +1148,11 @@ export default function App() {
       return;
     }
 
-    handleServerChange(preferredServer);
+    if (preferredServer?.isFreeProvider || preferredServer?.isScraped || preferredServer?.url) {
+      setActiveServer(preferredServer);
+    } else if (selectedDetails?.id) {
+      handleServerChange(preferredServer);
+    }
   }, [activeServer, handleServerChange, selectedDetails, servers]);
 
   const goHome = useCallback((pushState = true) => {
