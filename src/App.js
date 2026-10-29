@@ -672,21 +672,18 @@ export default function App() {
         const normalized = normalizeServers(rawSources);
 
         setServers((prev) => {
-          const getUniqueKey = (server) => {
-            const provider = String(server?.provider || "").toLowerCase();
-            if (provider === "codespecters") return "provider-codespecters";
-            return `${server?.url || ""}-${server?.type || "embed"}`;
-          };
-          const existingKeys = new Set(prev.map(getUniqueKey));
-          const fresh = normalized.filter((s) => !existingKeys.has(getUniqueKey(s)));
-          
-          const allServers = [...prev, ...fresh];
+          const allServers = [...normalized, ...prev];
           const codespecters = allServers.filter(s => String(s?.provider || "").toLowerCase() === "codespecters");
+          const bestCodespecters = codespecters.find(s => Boolean(String(s?.url || "").trim())) || codespecters[0];
           const otherServers = allServers.filter(s => String(s?.provider || "").toLowerCase() !== "codespecters");
 
           const finalMap = new Map();
-          [...codespecters, ...otherServers].forEach((s) => {
-            const key = getUniqueKey(s);
+          if (bestCodespecters) {
+            finalMap.set("provider-codespecters", bestCodespecters);
+          }
+
+          otherServers.forEach((s) => {
+            const key = `${s?.url || s?.id || ""}-${s?.type || "embed"}`;
             if (!finalMap.has(key)) {
               finalMap.set(key, s);
             }
@@ -1115,6 +1112,11 @@ export default function App() {
 
           // Load free providers for TV show (default will use season 1 ep 1 — updated on episode select)
           loadFreeProviders({ mediaType: "tv", tmdbId: id, seasonNumber: 1, episodeNumber: 1 });
+          const fp = getTvEpisodeProviders(id, 1, 1);
+          const initialServer = chooseInitialServer(fp);
+          if (initialServer) {
+            setActiveServer(initialServer);
+          }
         }
 
         trackEvent("open_detail", { media_type: media, item_id: id });
@@ -1134,24 +1136,43 @@ export default function App() {
       return;
     }
 
+    const isCurrentActiveValidCodespecters =
+      String(activeServer?.provider || "").toLowerCase() === "codespecters" &&
+      Boolean(String(activeServer?.url || "").trim());
+
+    if (isCurrentActiveValidCodespecters) {
+      return;
+    }
+
+    const preferredCodespecters = servers.find(
+      (s) =>
+        String(s?.provider || "").toLowerCase() === "codespecters" &&
+        Boolean(String(s?.url || "").trim())
+    );
+
+    if (preferredCodespecters) {
+      setActiveServer(preferredCodespecters);
+      return;
+    }
+
     const activeHasPlayableUrl = Boolean(String(activeServer?.url || "").trim());
     if (activeHasPlayableUrl) {
       return;
     }
 
-    const preferredServer =
+    const fallbackServer =
       servers.find((s) => String(s?.provider || "").toLowerCase() === "codespecters") ||
       servers.find((server) => server?.isFreeProvider || server?.isScraped || String(server?.url || "").trim()) ||
       servers[0];
 
-    if (!preferredServer) {
+    if (!fallbackServer) {
       return;
     }
 
-    if (preferredServer?.isFreeProvider || preferredServer?.isScraped || preferredServer?.url) {
-      setActiveServer(preferredServer);
+    if (fallbackServer?.isFreeProvider || fallbackServer?.isScraped || fallbackServer?.url) {
+      setActiveServer(fallbackServer);
     } else if (selectedDetails?.id) {
-      handleServerChange(preferredServer);
+      handleServerChange(fallbackServer);
     }
   }, [activeServer, handleServerChange, selectedDetails, servers]);
 
