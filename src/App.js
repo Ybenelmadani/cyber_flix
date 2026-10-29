@@ -672,16 +672,27 @@ export default function App() {
         const normalized = normalizeServers(rawSources);
 
         setServers((prev) => {
-          // Avoid duplicates by URL and type
-          const getUniqueKey = (server) => `${server.url}-${server.type || 'embed'}`;
+          const getUniqueKey = (server) => {
+            const provider = String(server?.provider || "").toLowerCase();
+            if (provider === "codespecters") return "provider-codespecters";
+            return `${server?.url || ""}-${server?.type || "embed"}`;
+          };
           const existingKeys = new Set(prev.map(getUniqueKey));
-          const fresh = normalized.filter((s) => s.url && !existingKeys.has(getUniqueKey(s)));
+          const fresh = normalized.filter((s) => !existingKeys.has(getUniqueKey(s)));
           
-          // Pull Codespecters from prev so it appears first
-          const codespecters = prev.filter(s => String(s.provider).toLowerCase() === "codespecters");
-          const otherPrev = prev.filter(s => String(s.provider).toLowerCase() !== "codespecters");
+          const allServers = [...prev, ...fresh];
+          const codespecters = allServers.filter(s => String(s?.provider || "").toLowerCase() === "codespecters");
+          const otherServers = allServers.filter(s => String(s?.provider || "").toLowerCase() !== "codespecters");
 
-          return [...codespecters, ...fresh, ...otherPrev];
+          const finalMap = new Map();
+          [...codespecters, ...otherServers].forEach((s) => {
+            const key = getUniqueKey(s);
+            if (!finalMap.has(key)) {
+              finalMap.set(key, s);
+            }
+          });
+
+          return Array.from(finalMap.values());
         });
       } catch (err) {
         console.error("Free providers error:", err);
@@ -862,6 +873,49 @@ export default function App() {
     [apiLanguage, t.errors.season]
   );
 
+  const handleServerChange = useCallback(
+    async (server) => {
+      try {
+        if (!selectedDetails?.id) return;
+
+        // Free providers & scraped sources already have a direct embed URL — use as-is
+        if (server?.isFreeProvider || server?.isScraped || server?.url) {
+          setActiveServer(server);
+          return;
+        }
+
+        const sourceIndex = Number(server?.id || 0);
+
+        const playbackServer =
+          mediaType === "movie"
+            ? await resolvePlaybackServer({
+                media: "movie",
+                tmdbId: selectedDetails.id,
+                sourceIndex,
+              })
+            : await resolvePlaybackServer({
+                media: "tv",
+                tmdbId: selectedDetails.id,
+                seasonNumber: selectedSeason,
+                episodeNumber: selectedEpisode,
+                sourceIndex,
+              });
+
+        setActiveServer(playbackServer);
+      } catch (err) {
+        setError(err.message || t.errors.details);
+      }
+    },
+    [
+      mediaType,
+      resolvePlaybackServer,
+      selectedDetails,
+      selectedEpisode,
+      selectedSeason,
+      t.errors.details,
+    ]
+  );
+
   const openEpisodeDetail = useCallback(
     async ({
       showId,
@@ -946,7 +1000,10 @@ export default function App() {
         });
 
         const fp = getTvEpisodeProviders(showId, seasonNumber, episodeNumber);
-        setActiveServer(chooseInitialServer([...fp, ...episodeServers]));
+        const initialServer = chooseInitialServer([...fp, ...episodeServers]);
+        if (initialServer) {
+          handleServerChange(initialServer);
+        }
 
         trackEvent("open_episode_detail", {
           media_type: "tv",
@@ -960,7 +1017,7 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, chooseInitialServer, loadFreeProviders, loadScrapedLinks, normalizeServers, t.errors.details]
+    [apiLanguage, chooseInitialServer, handleServerChange, loadFreeProviders, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
   const handleEpisodeSelect = useCallback(
@@ -1041,7 +1098,10 @@ export default function App() {
           loadFreeProviders({ mediaType: "movie", tmdbId: id });
 
           const fp = getMovieProviders(id);
-          setActiveServer(chooseInitialServer([...fp, ...movieServers]));
+          const initialServer = chooseInitialServer([...fp, ...movieServers]);
+          if (initialServer) {
+            handleServerChange(initialServer);
+          }
         }
 
         if (media === "tv" && Array.isArray(data.seasons)) {
@@ -1063,51 +1123,9 @@ export default function App() {
         setIsDetailsLoading(false);
       }
     },
-    [apiLanguage, chooseInitialServer, loadFreeProviders, loadSeason, loadScrapedLinks, normalizeServers, t.errors.details]
+    [apiLanguage, chooseInitialServer, handleServerChange, loadFreeProviders, loadSeason, loadScrapedLinks, normalizeServers, t.errors.details]
   );
 
-  const handleServerChange = useCallback(
-    async (server) => {
-      try {
-        if (!selectedDetails?.id) return;
-
-        // Free providers & scraped sources already have a direct embed URL — use as-is
-        if (server?.isFreeProvider || server?.isScraped || server?.url) {
-          setActiveServer(server);
-          return;
-        }
-
-        const sourceIndex = Number(server?.id || 0);
-
-        const playbackServer =
-          mediaType === "movie"
-            ? await resolvePlaybackServer({
-                media: "movie",
-                tmdbId: selectedDetails.id,
-                sourceIndex,
-              })
-            : await resolvePlaybackServer({
-                media: "tv",
-                tmdbId: selectedDetails.id,
-                seasonNumber: selectedSeason,
-                episodeNumber: selectedEpisode,
-                sourceIndex,
-              });
-
-        setActiveServer(playbackServer);
-      } catch (err) {
-        setError(err.message || t.errors.details);
-      }
-    },
-    [
-      mediaType,
-      resolvePlaybackServer,
-      selectedDetails,
-      selectedEpisode,
-      selectedSeason,
-      t.errors.details,
-    ]
-  );
 
   useEffect(() => {
     if (!selectedDetails?.id || !Array.isArray(servers) || servers.length === 0) {
@@ -1120,6 +1138,7 @@ export default function App() {
     }
 
     const preferredServer =
+      servers.find((s) => String(s?.provider || "").toLowerCase() === "codespecters") ||
       servers.find((server) => server?.isFreeProvider || server?.isScraped || String(server?.url || "").trim()) ||
       servers[0];
 

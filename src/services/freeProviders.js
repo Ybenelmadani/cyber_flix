@@ -6,6 +6,14 @@
 
 const FREE_PROVIDERS = [
   {
+    id: "codespecters",
+    name: "Codespecters",
+    provider: "codespecters",
+    quality: "HD",
+    movie: (id) => `https://api.codespecters.com/embed/movie/${id}`,
+    tv: (id, s, e) => `https://api.codespecters.com/embed/tv/${id}/${s}/${e}`,
+  },
+  {
     id: "vidlink",
     name: "VidLink",
     provider: "vidlink",

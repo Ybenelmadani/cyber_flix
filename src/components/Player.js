@@ -166,6 +166,11 @@ export default function Player({
       if (found) return found;
     }
 
+    const defaultCodespecters = servers.find(
+      (s) => String(s?.provider || "").toLowerCase() === "codespecters"
+    );
+    if (defaultCodespecters) return defaultCodespecters;
+
     return servers[0] || null;
   }, [servers, activeServer]);
 
