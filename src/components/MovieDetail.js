@@ -235,8 +235,7 @@ export default function MovieDetail({
         (server) =>
           !server?.isLegal &&
           !server?.isFreeProvider &&
-          (String(server?.type || "").toLowerCase() === "download" ||
-           String(server?.name || server?.provider || "").toLowerCase().includes("vidtube"))
+          String(server?.type || "").toLowerCase() === "download"
       )
     : [];
   const externalServers = hasStreams
@@ -244,8 +243,7 @@ export default function MovieDetail({
         (server) =>
           !server?.isLegal &&
           !server?.isFreeProvider &&
-          String(server?.type || "").toLowerCase() !== "download" &&
-          String(server?.name || server?.provider || "").toLowerCase().includes("vidtube")
+          String(server?.type || "").toLowerCase() !== "download"
       )
     : [];
 

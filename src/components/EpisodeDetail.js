@@ -222,15 +222,13 @@ export default function EpisodeDetail({
               (s) =>
                 !s.isLegal &&
                 !s.isFreeProvider &&
-                (String(s?.type || "").toLowerCase() === "download" ||
-                 String(s?.name || s?.provider || "").toLowerCase().includes("vidtube"))
+                String(s?.type || "").toLowerCase() === "download"
             );
             const externalServers = servers.filter(
               (s) =>
                 !s.isLegal &&
                 !s.isFreeProvider &&
-                String(s?.type || "").toLowerCase() !== "download" &&
-                String(s?.name || s?.provider || "").toLowerCase().includes("vidtube")
+                String(s?.type || "").toLowerCase() !== "download"
             );
             const posterUrl = stillUrl;
             const epTitle =
