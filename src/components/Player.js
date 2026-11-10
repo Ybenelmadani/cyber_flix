@@ -190,13 +190,6 @@ export default function Player({
       );
       if (foundByUrl) return { ...foundByUrl, ...activeServer };
 
-      const foundByProvider = servers.find(
-        (server) =>
-          String(server?.provider || "").toLowerCase() ===
-          String(activeServer?.provider || "").toLowerCase()
-      );
-      if (foundByProvider) return { ...foundByProvider, ...activeServer };
-
       return activeServer;
     }
 
@@ -217,15 +210,9 @@ export default function Player({
       if (found) return found;
     }
 
-    const defaultCodespecters =
-      servers.find(
-        (s) =>
-          String(s?.provider || "").toLowerCase() === "codespecters" &&
-          Boolean(String(s?.url || "").trim())
-      ) ||
-      servers.find(
-        (s) => String(s?.provider || "").toLowerCase() === "codespecters"
-      );
+    const defaultCodespecters = servers.find(
+      (s) => String(s?.provider || "").toLowerCase() === "codespecters"
+    );
     if (defaultCodespecters) return defaultCodespecters;
 
     return servers[0] || null;
@@ -328,13 +315,9 @@ export default function Player({
           <div className="server-tabs-list">
             {servers.map((server) => {
               const meta = getProviderMeta(server.provider);
-              const isSameCodespecters =
-                String(activeSource?.provider || "").toLowerCase() === "codespecters" &&
-                String(server?.provider || "").toLowerCase() === "codespecters";
               const isActive =
                 activeSource?.id === server.id ||
-                activeSource?.url === server.url ||
-                isSameCodespecters;
+                activeSource?.url === server.url;
               return (
                 <button
                   key={server.id || server.url}

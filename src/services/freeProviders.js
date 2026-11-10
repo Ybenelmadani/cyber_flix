@@ -4,25 +4,14 @@
  * Works on Vercel without any server configuration.
  */
 
-const CODESPECTERS_API_KEY =
-  process.env.REACT_APP_CODESPECTERS_API_KEY ||
-  process.env.REACT_APP_EMBED_API_KEY ||
-  "nx_dcd128e50940a62b5766477130753452";
-
 const FREE_PROVIDERS = [
   {
     id: "codespecters",
     name: "Codespecters",
     provider: "codespecters",
     quality: "HD",
-    movie: (id) =>
-      `https://api.codespecters.com/embed/movie/${id}${
-        CODESPECTERS_API_KEY ? `?apikey=${CODESPECTERS_API_KEY}` : ""
-      }`,
-    tv: (id, s, e) =>
-      `https://api.codespecters.com/embed/tv/${id}/${s}/${e}${
-        CODESPECTERS_API_KEY ? `?apikey=${CODESPECTERS_API_KEY}` : ""
-      }`,
+    movie: (id) => `https://api.codespecters.com/embed/movie/${id}`,
+    tv: (id, s, e) => `https://api.codespecters.com/embed/tv/${id}/${s}/${e}`,
   },
   {
     id: "vidlink",
