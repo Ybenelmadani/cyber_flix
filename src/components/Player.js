@@ -218,6 +218,26 @@ export default function Player({
     return servers[0] || null;
   }, [servers, activeServer]);
 
+  // Keep the selected server in sync when providers arrive asynchronously.
+  // This prevents requiring a manual click on Codespecters after opening an episode.
+  useEffect(() => {
+    if (!Array.isArray(servers) || servers.length === 0 || !setActiveServer) return;
+
+    const activeMatches = activeServer && servers.some(
+      (server) =>
+        (activeServer.id && String(server?.id) === String(activeServer.id)) ||
+        (activeServer.url && String(server?.url) === String(activeServer.url))
+    );
+    if (activeMatches) return;
+
+    const preferredServer =
+      servers.find(
+        (server) => String(server?.provider || "").toLowerCase() === "codespecters"
+      ) || servers[0];
+
+    if (preferredServer) setActiveServer(preferredServer);
+  }, [activeServer, servers, setActiveServer]);
+
   const resolvedSourceType = useMemo(() => {
     if (!activeSource) return "video";
     const url = activeSource.url?.toLowerCase() || "";
