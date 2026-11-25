@@ -1,6 +1,13 @@
 {
   "short_name": "CYBERFLIX",
-  "name": "CYBERFLIX Streaming Hub",
+  "name": "CYBERFLIX - Movies & Series",
+  "description": "Découvrez et suivez vos films et séries préférés en haute qualité sur CYBERFLIX.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#081226",
+  "background_color": "#081226",
   "icons": [
     {
       "src": "favicon.svg",
@@ -12,10 +19,17 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "logo192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#081226",
-  "background_color": "#081226"
+  "categories": ["entertainment", "movies"]
 }

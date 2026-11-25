@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Play } from "lucide-react";
 
 const FALLBACK_POSTER =
@@ -22,12 +23,13 @@ export default function MovieCard({
     : FALLBACK_POSTER;
 
   return (
-    <a
-      href={href}
+    <Link
+      to={href}
       onClick={(event) => {
-        event.preventDefault();
         if (onClick) {
-          onClick();
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          event.preventDefault();
+          onClick(movie);
         }
       }}
       className="group block cursor-pointer text-left transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(232,121,249,0.2)] active:scale-[0.98]"
@@ -37,6 +39,7 @@ export default function MovieCard({
           src={posterUrl}
           alt={title}
           loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
 
@@ -68,6 +71,6 @@ export default function MovieCard({
       <p className="mt-1 text-[11px] text-cyber-cyan/60 sm:text-sm">
         {yearLabel}: {releaseDate?.split("-")[0] || unavailableLabel}
       </p>
-    </a>
+    </Link>
   );
 }

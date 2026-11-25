@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Download } from "lucide-react";
 import Player from "./Player";
 import TitleReviews from "./TitleReviews";
@@ -232,19 +233,19 @@ export default function MovieDetail({
   const hasStreams = Array.isArray(servers) && servers.length > 0;
   const downloadServers = hasStreams
     ? servers.filter(
-        (server) =>
-          !server?.isLegal &&
-          !server?.isFreeProvider &&
-          String(server?.type || "").toLowerCase() === "download"
-      )
+      (server) =>
+        !server?.isLegal &&
+        !server?.isFreeProvider &&
+        String(server?.type || "").toLowerCase() === "download"
+    )
     : [];
   const externalServers = hasStreams
     ? servers.filter(
-        (server) =>
-          !server?.isLegal &&
-          !server?.isFreeProvider &&
-          String(server?.type || "").toLowerCase() !== "download"
-      )
+      (server) =>
+        !server?.isLegal &&
+        !server?.isFreeProvider &&
+        String(server?.type || "").toLowerCase() !== "download"
+    )
     : [];
 
   return (
@@ -413,8 +414,8 @@ export default function MovieDetail({
                         onSeasonSelect && onSeasonSelect(season.season_number)
                       }
                       className={`shrink-0 rounded-full border-2 px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold transition-all duration-300 ${selectedSeason === season.season_number
-                          ? "border-cyber-fuchsia bg-cyber-fuchsia text-white shadow-[0_0_15px_rgba(232,121,249,0.5)] scale-105"
-                          : "border-cyber-cyan/30 bg-cyber-dark text-cyber-cyan hover:border-cyber-cyan hover:bg-cyber-cyan/10"
+                        ? "border-cyber-fuchsia bg-cyber-fuchsia text-white shadow-[0_0_15px_rgba(232,121,249,0.5)] scale-105"
+                        : "border-cyber-cyan/30 bg-cyber-dark text-cyber-cyan hover:border-cyber-cyan hover:bg-cyber-cyan/10"
                         }`}
                     >
                       {text.season || "Season"} {season.season_number}
@@ -868,31 +869,49 @@ export default function MovieDetail({
                 {text.similarTitles || "Similar titles"}
               </h3>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {similarTitles.map((item) => {
                   const similarTitle = item.title || item.name;
+                  const itemPoster = item.poster_path
+                    ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
+                    : null;
+                  const targetHref = `/${mediaType === "movie" ? "film" : "serie"}/${item.id}`;
 
                   return (
-                    <div
+                    <Link
                       key={item.id}
-                      className="rounded-[1.5rem] border border-cyber-cyan/15 bg-cyber-darker/45 p-4"
+                      to={targetHref}
+                      className="group flex gap-3 overflow-hidden rounded-[1.25rem] border border-cyber-cyan/15 bg-cyber-darker/60 p-3 transition-all hover:-translate-y-1 hover:border-cyber-fuchsia/40 hover:bg-cyber-darker/90"
                     >
-                      <p className="font-semibold text-cyan-50">
-                        {similarTitle}
-                      </p>
-                      <p className="mt-2 text-sm text-cyber-cyan/70">
-                        {formatDate(
-                          item.release_date || item.first_air_date,
-                          naText
-                        )}
-                      </p>
-                      <p className="mt-1 text-sm text-cyber-fuchsia">
-                        {text.rating || "Rating"}:{" "}
-                        {Number.isFinite(Number(item.vote_average))
-                          ? Number(item.vote_average).toFixed(1)
-                          : naText}
-                      </p>
-                    </div>
+                      {itemPoster ? (
+                        <img
+                          src={itemPoster}
+                          alt={similarTitle}
+                          loading="lazy"
+                          className="h-20 w-14 shrink-0 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-lg bg-cyber-dark text-[10px] text-cyber-cyan/50">
+                          No Pic
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1 py-1">
+                        <p className="line-clamp-1 font-semibold text-cyan-50 group-hover:text-cyber-fuchsia transition-colors">
+                          {similarTitle}
+                        </p>
+                        <p className="mt-1 text-xs text-cyber-cyan/70">
+                          {formatDate(
+                            item.release_date || item.first_air_date,
+                            naText
+                          )}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-cyber-fuchsia">
+                          ★ {Number.isFinite(Number(item.vote_average))
+                            ? Number(item.vote_average).toFixed(1)
+                            : naText}
+                        </p>
+                      </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -917,8 +936,8 @@ export default function MovieDetail({
                     onProviderCountryChange && onProviderCountryChange(countryCode)
                   }
                   className={`rounded-xl border px-3 py-2 text-xs font-semibold sm:text-sm ${providerCountry === countryCode
-                      ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
-                      : "border-cyber-cyan/30 text-cyber-cyan"
+                    ? "border-cyber-fuchsia bg-cyber-fuchsia/10 text-cyber-fuchsia"
+                    : "border-cyber-cyan/30 text-cyber-cyan"
                     }`}
                 >
                   {countryCode}

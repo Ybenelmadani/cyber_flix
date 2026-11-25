@@ -1,5 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense, lazy } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 // import Hero from "./components/Hero";
 import MovieGrid from "./components/MovieGrid";
@@ -23,6 +24,7 @@ const MovieDetail = lazy(() => import("./components/MovieDetail"));
 const EpisodeDetail = lazy(() => import("./components/EpisodeDetail"));
 const AdminStreamsPanel = lazy(() => import("./components/AdminStreamsPanel"));
 const AuthPanel = lazy(() => import("./components/AuthPanel"));
+const PwaInstallPrompt = lazy(() => import("./components/PwaInstallPrompt"));
 
 const LANG_ORDER = ["en", "fr", "ar"];
 const API_LANGUAGE_MAP = {
@@ -34,7 +36,7 @@ const ADMIN_STREAMS_PATH = "/admin/streams";
 
 const parseDetailPath = (path) => {
   const episodeMatch = path.match(
-    /^\/tv\/(\d+)\/season\/(\d+)\/episode\/(\d+)$/i
+    /^\/(?:tv|serie)\/(\d+)\/season\/(\d+)\/episode\/(\d+)$/i
   );
 
   if (episodeMatch) {
@@ -47,20 +49,21 @@ const parseDetailPath = (path) => {
     };
   }
 
-  const match = path.match(/^\/(movie|tv)\/(\d+)$/i);
+  const match = path.match(/^\/(film|serie|movie|tv)\/(\d+)$/i);
   if (!match) {
     return null;
   }
+  const raw = match[1].toLowerCase();
   return {
     type: "detail",
-    media: match[1].toLowerCase(),
+    media: raw === "film" || raw === "movie" ? "movie" : "tv",
     id: Number(match[2]),
   };
 };
 
-const detailPath = (media, id) => `/${media}/${id}`;
+const detailPath = (media, id) => (media === "movie" ? `/film/${id}` : `/serie/${id}`);
 const episodeDetailPath = (id, seasonNumber, episodeNumber) =>
-  `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`;
+  `/serie/${id}/season/${seasonNumber}/episode/${episodeNumber}`;
 const isAdminPath = (path) => path === ADMIN_STREAMS_PATH;
 
 const setMeta = (name, content) => {
@@ -454,8 +457,10 @@ const TRANSLATIONS = {
 };
 
 export default function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [routePath, setRoutePath] = useState(
-    () => window.location.pathname || "/"
+    () => (typeof window !== "undefined" ? window.location.pathname : "/")
   );
   const [language, setLanguage] = useState(
     () => localStorage.getItem("cyberflix_lang") || "en"
@@ -765,7 +770,12 @@ export default function App() {
 
   const loadFavorites = useCallback(async () => {
     if (!getAuthToken()) {
-      setFavorites([]);
+      try {
+        const local = JSON.parse(localStorage.getItem("cyberflix_local_favorites") || "[]");
+        setFavorites(Array.isArray(local) ? local : []);
+      } catch {
+        setFavorites([]);
+      }
       return;
     }
 
@@ -776,7 +786,12 @@ export default function App() {
       if (err.status === 401) {
         clearAuthToken();
         setAuthUser(null);
-        setFavorites([]);
+        try {
+          const local = JSON.parse(localStorage.getItem("cyberflix_local_favorites") || "[]");
+          setFavorites(Array.isArray(local) ? local : []);
+        } catch {
+          setFavorites([]);
+        }
         return;
       }
       setError(t.errors.loadFavorites);
@@ -927,7 +942,7 @@ export default function App() {
       const path = episodeDetailPath(showId, seasonNumber, episodeNumber);
 
       if (pushState) {
-        window.history.pushState({}, "", path);
+        navigate(path);
       }
 
       setRoutePath(path);
@@ -964,6 +979,23 @@ export default function App() {
         setSelectedDetails(showDetails);
         setSelectedEpisodeDetails(episodeDetails);
         setSeasonDetails(season);
+
+        try {
+          const epName = episodeDetails.name || `Episode ${episodeNumber}`;
+          const cwItem = {
+            id: showId,
+            episodeId: `${showId}-s${seasonNumber}e${episodeNumber}`,
+            title: `${showDetails.name || showDetails.title || "Series"}: S${seasonNumber}E${episodeNumber} ${epName}`,
+            poster_path: episodeDetails.still_path || showDetails.poster_path,
+            mediaType: "tv",
+            seasonNumber,
+            episodeNumber,
+            watchedAt: Date.now(),
+          };
+          const raw = JSON.parse(localStorage.getItem("cyberflix_continue_watching") || "[]");
+          const nextCw = [cwItem, ...raw.filter((x) => String(x.episodeId || x.id) !== String(cwItem.episodeId))].slice(0, 10);
+          localStorage.setItem("cyberflix_continue_watching", JSON.stringify(nextCw));
+        } catch {}
 
         let episodeServers = [];
         // Load episode stream sources
@@ -1041,7 +1073,7 @@ export default function App() {
       const path = detailPath(media, id);
 
       if (pushState) {
-        window.history.pushState({}, "", path);
+        navigate(path);
       }
 
       setRoutePath(path);
@@ -1065,6 +1097,21 @@ export default function App() {
             : await tmdbAPI.tvDetails(id, apiLanguage);
 
         setSelectedDetails(data);
+
+        try {
+          const cwItem = {
+            id,
+            title: data.title || data.name || data.original_title || "CYBERFLIX",
+            poster_path: data.poster_path,
+            mediaType: media,
+            rating: data.vote_average,
+            year: (data.release_date || data.first_air_date || "").slice(0, 4),
+            watchedAt: Date.now(),
+          };
+          const raw = JSON.parse(localStorage.getItem("cyberflix_continue_watching") || "[]");
+          const nextCw = [cwItem, ...raw.filter((x) => String(x.id) !== String(id))].slice(0, 10);
+          localStorage.setItem("cyberflix_continue_watching", JSON.stringify(nextCw));
+        } catch {}
 
         const providers =
           media === "movie"
@@ -1157,7 +1204,7 @@ export default function App() {
 
   const goHome = useCallback((pushState = true) => {
     if (pushState) {
-      window.history.pushState({}, "", "/");
+      navigate("/");
     }
     setRoutePath("/");
     setSelectedItem(null);
@@ -1169,7 +1216,7 @@ export default function App() {
     setWatchProviders(null);
     setServers([]);
     setActiveServer(null);
-  }, []);
+  }, [navigate]);
 
   const handleGoHome = useCallback(() => {
     setSearchQuery("");
@@ -1179,7 +1226,7 @@ export default function App() {
 
   const openAdminPanel = useCallback((pushState = true) => {
     if (pushState) {
-      window.history.pushState({}, "", ADMIN_STREAMS_PATH);
+      navigate(ADMIN_STREAMS_PATH);
     }
     setRoutePath(ADMIN_STREAMS_PATH);
     setSelectedItem(null);
@@ -1192,14 +1239,13 @@ export default function App() {
     setServers([]);
     setActiveServer(null);
     setError("");
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
-    trackPageView(routePath);
-  }, [routePath]);
+    const path = location.pathname;
+    setRoutePath(path);
+    trackPageView(path);
 
-  useEffect(() => {
-    const path = window.location.pathname;
     const parsed = parseDetailPath(path);
 
     if (isAdminPath(path)) {
@@ -1216,37 +1262,14 @@ export default function App() {
     } else {
       setRoutePath("/");
     }
-
-    const onPopState = () => {
-      const path = window.location.pathname;
-      const detail = parseDetailPath(path);
-
-      if (isAdminPath(path)) {
-        openAdminPanel(false);
-      } else if (detail?.type === "episode") {
-        openEpisodeDetail({
-          showId: detail.id,
-          seasonNumber: detail.seasonNumber,
-          episodeNumber: detail.episodeNumber,
-          pushState: false,
-        });
-      } else if (detail) {
-        openDetailById({
-          media: detail.media,
-          id: detail.id,
-          pushState: false,
-        });
-      } else {
-        goHome(false);
-      }
-    };
-
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, [goHome, openAdminPanel, openDetailById, openEpisodeDetail]);
+  }, [location.pathname, openAdminPanel, openDetailById, openEpisodeDetail]);
 
   useEffect(() => {
     localStorage.setItem("cyberflix_lang", language);
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = language;
+      document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    }
     if (authUser) {
       authAPI.setLanguage(language).catch(() => {});
     }
@@ -1356,22 +1379,29 @@ export default function App() {
     }
 
     return favorites
-      .filter((fav) => (fav.mediaType || "movie") === mediaType)
+      .filter((fav) => {
+        if (!fav) return false;
+        const favMedia = fav.mediaType || fav.media_type || (String(fav.favoriteKey || fav.key || "").startsWith("tv") ? "tv" : "movie");
+        return favMedia === mediaType;
+      })
       .map((fav) => ({
-        id: fav.movieId,
-        title: fav.title,
-        name: fav.title,
-        poster_path: fav.poster,
-        vote_average: fav.rating,
-        favoriteKey: fav.favoriteKey,
+        id: fav.movieId || fav.id,
+        title: fav.title || fav.name,
+        name: fav.title || fav.name,
+        poster_path: fav.poster || fav.poster_path,
+        vote_average: fav.rating || fav.vote_average,
+        favoriteKey: fav.favoriteKey || fav.key,
       }));
   }, [activeCategory, favorites, items, mediaType]);
 
   const selectedId = selectedDetails?.id || selectedItem?.id;
   const selectedFavoriteKey = `${mediaType}-${selectedId}`;
-  const isSelectedFavorite = favorites.some(
-    (fav) => fav.favoriteKey === selectedFavoriteKey
-  );
+  const isSelectedFavorite = favorites.some((fav) => {
+    if (!fav) return false;
+    if (typeof fav === "string") return fav === selectedFavoriteKey;
+    const favKey = fav.favoriteKey || fav.key || `${fav.mediaType || fav.media_type}-${fav.movieId || fav.id}`;
+    return favKey === selectedFavoriteKey;
+  });
 
   /*
   const heroStats = [
@@ -1423,14 +1453,46 @@ export default function App() {
     const target = selectedDetails || selectedItem;
     if (!target) return;
 
-    if (!getAuthToken()) {
-      setError(t.errors.authRequired);
-      setShowAuthPanel(true);
-      return;
-    }
-
     const key = `${mediaType}-${target.id}`;
     clearError();
+
+    // Guest mode fallback in localStorage
+    if (!getAuthToken()) {
+      try {
+        const local = JSON.parse(localStorage.getItem("cyberflix_local_favorites") || "[]");
+        let updated;
+        if (isSelectedFavorite) {
+          updated = local.filter((fav) => {
+            if (!fav) return false;
+            const favKey = typeof fav === "string" ? fav : fav.favoriteKey || fav.key || `${fav.mediaType || fav.media_type}-${fav.movieId || fav.id}`;
+            return favKey !== key;
+          });
+        } else {
+          updated = [
+            {
+              favoriteKey: key,
+              key,
+              movieId: target.id,
+              id: target.id,
+              mediaType,
+              title: target.title || target.name,
+              poster: target.poster_path,
+              poster_path: target.poster_path,
+              rating: target.vote_average,
+              vote_average: target.vote_average,
+            },
+            ...local,
+          ];
+        }
+        localStorage.setItem("cyberflix_local_favorites", JSON.stringify(updated));
+        setFavorites(updated);
+        trackEvent(isSelectedFavorite ? "remove_favorite" : "add_favorite", {
+          item_id: target.id,
+          media_type: mediaType,
+        });
+      } catch {}
+      return;
+    }
 
     try {
       if (isSelectedFavorite) {
@@ -1641,7 +1703,7 @@ export default function App() {
                   })
                 }
                 isLoading={isLoading}
-                detailBasePath={mediaType}
+                detailBasePath={mediaType === "movie" ? "film" : "serie"}
                 emptyMessage={
                   searchQuery.trim()
                     ? t.empty.search
@@ -1722,6 +1784,10 @@ export default function App() {
       </main>
 
       <Footer text={t.footer.rights} />
+
+      <Suspense fallback={null}>
+        <PwaInstallPrompt language={language} />
+      </Suspense>
 
       {showAuthPanel ? (
         <Suspense fallback={null}>

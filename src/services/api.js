@@ -171,6 +171,9 @@ export const tmdbAPI = {
   details: (id, language) =>
     request(withLanguage(`/tmdb/movie/${id}`, language)),
 
+  similarMovies: (id, language) =>
+    request(withLanguage(`/tmdb/movie/${id}/similar`, language)),
+
   byGenre: (genreId, page = 1, language) =>
     request(withLanguage(`/tmdb/genre/${genreId}?page=${page}`, language)),
 
@@ -200,6 +203,9 @@ export const tmdbAPI = {
 
   tvDetails: (id, language) =>
     request(withLanguage(`/tmdb/tv/${id}`, language)),
+
+  similarTv: (id, language) =>
+    request(withLanguage(`/tmdb/tv/${id}/similar`, language)),
 
   tvSeasonDetails: (id, seasonNumber, language) =>
     request(withLanguage(`/tmdb/tv/${id}/season/${seasonNumber}`, language)),

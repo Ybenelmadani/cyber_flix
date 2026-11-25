@@ -1,6 +1,30 @@
 {
   "rewrites": [
     {
+      "source": "/robots.txt",
+      "destination": "/api/seo"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/seo"
+    },
+    {
+      "source": "/film/:id",
+      "destination": "/api/seo"
+    },
+    {
+      "source": "/serie/:id",
+      "destination": "/api/seo"
+    },
+    {
+      "source": "/movie/:id",
+      "destination": "/api/seo"
+    },
+    {
+      "source": "/tv/:id",
+      "destination": "/api/seo"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
