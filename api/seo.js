@@ -92,7 +92,7 @@ module.exports = async function handler(req, res) {
   }
 
   // 2. Sitemap.xml (cached 6 hours)
-  if (pathname === '/sitemap.xml') {
+  if (pathname === '/sitemap.xml' || req.query?.route === 'sitemap') {
     try {
       const now = Date.now();
       const SIX_HOURS = 6 * 3600 * 1000;

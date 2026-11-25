@@ -6,7 +6,7 @@
     },
     {
       "source": "/sitemap.xml",
-      "destination": "/api/seo"
+      "destination": "/api/seo?route=sitemap"
     },
     {
       "source": "/film/:id",
